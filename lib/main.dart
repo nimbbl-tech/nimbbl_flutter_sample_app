@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nimbbl_flutter_sample_app/ui/screens/config_page_view.dart';
 import 'package:nimbbl_flutter_sample_app/ui/screens/order_create_data_values.dart';
 import 'package:nimbbl_flutter_sample_app/ui/screens/order_create_view.dart';
@@ -9,7 +10,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api/network_helper.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]).then((_) {
+    runApp(const MyApp());
+  });
+
 }
 
 class MyApp extends StatelessWidget {
