@@ -1,0 +1,94 @@
+PODS:
+  - connectivity_plus (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - device_info_plus (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+  - flutter_inappwebview_ios (0.0.1):
+    - Flutter
+    - flutter_inappwebview_ios/Core (= 0.0.1)
+    - OrderedSet (~> 5.0)
+  - flutter_inappwebview_ios/Core (0.0.1):
+    - Flutter
+    - OrderedSet (~> 5.0)
+  - flutter_upi_india (1.0.0):
+    - Flutter
+  - fluttertoast (0.0.2):
+    - Flutter
+    - Toast
+  - get_upi (0.0.1):
+    - Flutter
+  - nimbbl_mobile_kit_flutter_webview_sdk (0.0.1):
+    - Flutter
+  - OrderedSet (5.0.0)
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - Toast (4.1.1)
+  - url_launcher_ios (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - connectivity_plus (from `.symlinks/plugins/connectivity_plus/darwin`)
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
+  - Flutter (from `Flutter`)
+  - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
+  - flutter_upi_india (from `.symlinks/plugins/flutter_upi_india/ios`)
+  - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
+  - get_upi (from `.symlinks/plugins/get_upi/ios`)
+  - nimbbl_mobile_kit_flutter_webview_sdk (from `.symlinks/plugins/nimbbl_mobile_kit_flutter_webview_sdk/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+
+SPEC REPOS:
+  trunk:
+    - OrderedSet
+    - Toast
+
+EXTERNAL SOURCES:
+  connectivity_plus:
+    :path: ".symlinks/plugins/connectivity_plus/darwin"
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
+  Flutter:
+    :path: Flutter
+  flutter_inappwebview_ios:
+    :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
+  flutter_upi_india:
+    :path: ".symlinks/plugins/flutter_upi_india/ios"
+  fluttertoast:
+    :path: ".symlinks/plugins/fluttertoast/ios"
+  get_upi:
+    :path: ".symlinks/plugins/get_upi/ios"
+  nimbbl_mobile_kit_flutter_webview_sdk:
+    :path: ".symlinks/plugins/nimbbl_mobile_kit_flutter_webview_sdk/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
+
+SPEC CHECKSUMS:
+  connectivity_plus: ddd7f30999e1faaef5967c23d5b6d503d10434db
+  device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  flutter_inappwebview_ios: 97215cf7d4677db55df76782dbd2930c5e1c1ea0
+  flutter_upi_india: 76efc4cd742f0b0890e4eaa7421c73ff02245c71
+  fluttertoast: e9a18c7be5413da53898f660530c56f35edfba9c
+  get_upi: 0844bbe5b833e69bb6e21b3eb9ba072c94ed4ef0
+  nimbbl_mobile_kit_flutter_webview_sdk: 9bc543b0a0381bb4aed68606ca6f5a010bec4c77
+  OrderedSet: aaeb196f7fef5a9edf55d89760da9176ad40b93c
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
+  Toast: 1f5ea13423a1e6674c4abdac5be53587ae481c4e
+  url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
+
+PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
+
+COCOAPODS: 1.15.2
