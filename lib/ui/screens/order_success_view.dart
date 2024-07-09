@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
 import '../../utils/colors.dart';
+import '../../utils/constant_images.dart';
 import '../../utils/strings.dart';
 
 class OrderSuccessView extends StatefulWidget {
@@ -29,7 +30,7 @@ class _OrderSuccessViewState extends State<OrderSuccessView> {
                 Image.asset(
                   height: 31,
                   width: 85,
-                  "assets/images/headerLogo.png",
+                  headerLogoImg,
                 ),
               ],
             ),
@@ -48,18 +49,17 @@ class _OrderSuccessViewState extends State<OrderSuccessView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Text(
-                    "OrderID: ${widget.orderID}",
+                   Text("$orderIdStr${widget.orderID}",
                     //style:  context.gorditasTitle1.copyWith(
                     style: const TextStyle(
-                        color: Colors.black, fontWeight: FontWeight.w600, fontSize: 16),
+                        color:blackColor, fontWeight: FontWeight.w600, fontSize: 16),
                   ),
                   const SizedBox(height: 10,),
                    Text(
-                    'Status: ${widget.status}',
+                    '$statusStr${widget.status}',
                     //style:  context.gorditasTitle1.copyWith(
                     style: const TextStyle(
-                        color: Colors.black, fontWeight: FontWeight.w600, fontSize: 16),
+                        color: blackColor, fontWeight: FontWeight.w600, fontSize: 16),
                   )
                 ],
               ),

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../utils/constants/constants.dart';
+import '../../utils/constant_images.dart';
 import 'order_create_view.dart';
 
 String selectedCountryType = 'INR';
@@ -48,28 +49,28 @@ final List<ImageWithName> netBankingSubPaymentTypeList = [
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/grid.png",
+        menuImg,
       ),
       name: 'all banks'),
   ImageWithName(
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/hdfcBankLogo.png",
+        hdfcImg,
       ),
       name: 'hdfc bank'),
   ImageWithName(
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/sbiBankLogo.png",
+          sbiImg,
       ),
       name: 'sbi bank'),
   ImageWithName(
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/kotakBankLogo.png",
+        kotakImg,
       ),
       name: 'kotak bank'),
 ];
@@ -79,28 +80,28 @@ final List<ImageWithName> walletSubPaymentTypeList = [
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/grid.png",
+        menuImg,
       ),
       name: 'all wallets'),
   ImageWithName(
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/freecharge.png",
+        freeChargeImg,
       ),
       name: 'freecharge'),
   ImageWithName(
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/jiomoney.png",
+        jioMoneyImg,
       ),
       name: 'jio money'),
   ImageWithName(
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/phonepe.png",
+        phonePeImg,
       ),
       name: 'phonepe'),
 ];
@@ -110,21 +111,21 @@ final List<ImageWithName> upiSubPaymentTypeList = [
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/upi.png",
+        upiImg,
       ),
       name: 'collect + intent'),
   ImageWithName(
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/upi.png",
+        upiImg,
       ),
       name: 'collect'),
   ImageWithName(
       image: Image.asset(
         height: 16,
         width: 16,
-        "assets/icons/upi.png",
+        upiImg,
       ),
       name: 'intent'),
 ];

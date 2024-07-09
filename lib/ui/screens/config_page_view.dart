@@ -35,8 +35,8 @@ class _ConfigPageViewState extends State<ConfigPageView> {
                 padding: EdgeInsets.zero,
               )
             : Container(),
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: blackColor,
+        iconTheme: const IconThemeData(color: whiteColor),
         title: const Text(
           header2,
           style: TextStyle(
@@ -78,7 +78,7 @@ class _ConfigPageViewState extends State<ConfigPageView> {
                   padding: null,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.white,
+                    color: whiteColor,
                   ),
                   elevation: 8,
                   scrollbarTheme: ScrollbarThemeData(
@@ -144,7 +144,7 @@ class _ConfigPageViewState extends State<ConfigPageView> {
                   padding: null,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.white,
+                    color: whiteColor,
                   ),
                   elevation: 8,
                   scrollbarTheme: ScrollbarThemeData(

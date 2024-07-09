@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/utils/api_utils.dart';
 
+import '../colors.dart';
+
 class Utils {
   static final Utils _singleton = Utils._internal();
 
@@ -162,23 +164,23 @@ class Utils {
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.CENTER,
         timeInSecForIosWeb: 1,
-        backgroundColor: Colors.black,
-        textColor: Colors.white,
+        backgroundColor: blackColor,
+        textColor: whiteColor,
         fontSize: 18.0);
   }
   static SnackBar createSnackBar(String message, BuildContext ctx) {
     return SnackBar(
       backgroundColor: Colors.grey,
       action: SnackBarAction(
-        backgroundColor: Colors.black,
+        backgroundColor: blackColor,
         label: 'Ok',
-        textColor: Colors.white,
+        textColor:whiteColor,
         onPressed: () {},
       ),
       content: Text(
         message,
         style: const TextStyle(
-            fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+            fontSize: 18, fontWeight: FontWeight.w700, color: whiteColor),
       ),
     );
   }

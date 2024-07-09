@@ -22,6 +22,12 @@ const String homeTxt16 = "about us";
 const String settingTxt1 = "Select an environment";
 const String settingTxt2 = "Select an app experience";
 
+
+//OrderSuccess Strings
+const String orderIdStr = "OrderID: ";
+const String statusStr = "Status: ";
+
+
 //button Strings
 const String homeButtonTxt1 = "tutorial";
 const String homeButtonTxt2 = "pay now";

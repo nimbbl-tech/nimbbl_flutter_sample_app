@@ -16,6 +16,7 @@ import '../../api/api_response.dart';
 import '../../model/home_page_model/generate_token_vo.dart';
 import '../../model/home_page_model/order_data_response_vo.dart';
 import '../../utils/colors.dart';
+import '../../utils/constant_images.dart';
 import '../../utils/helpers/utills.dart';
 import '../../utils/strings.dart';
 import 'order_create_data_values.dart';
@@ -51,7 +52,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
             Image.asset(
               height: 31,
               width: 85,
-              "assets/images/headerLogo.png",
+              headerLogoImg,
             ),
           ],
         ),
@@ -88,7 +89,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
               ClipRRect(
                   borderRadius: BorderRadius.circular(14.0),
                   child: Image.asset(
-                    "assets/images/PaperPlane.png",
+                    paperPlaneImg,
                     height: 200,
                     fit: BoxFit.fill,
                   )),
@@ -189,7 +190,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                   Icon(
                     Icons.info_sharp,
                     size: 18,
-                    color: Colors.indigo,
+                    color: indigoColor,
                   ),
                   Gap(5),
                   Expanded(
@@ -297,7 +298,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                       padding: null,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        color: Colors.white,
+                        color: whiteColor,
                       ),
                       elevation: 8,
                       scrollbarTheme: ScrollbarThemeData(
@@ -408,7 +409,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                     padding: null,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      color: Colors.white,
+                      color: whiteColor,
                     ),
                     elevation: 8,
                     scrollbarTheme: ScrollbarThemeData(
@@ -518,7 +519,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                               padding: null,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
-                                color: Colors.white,
+                                color: whiteColor,
                               ),
                               elevation: 8,
                               scrollbarTheme: ScrollbarThemeData(
@@ -650,9 +651,9 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                                 borderSide: BorderSide(
                                     color: greyColor.shade800, width: 2),
                               ),
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Colors.red.shade300, width: 2),
+                              border: const OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: lightRedColor, width: 2),
                               ), // Optional: Remove this line for no border
                             ),
                           ),
@@ -723,9 +724,9 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                                 borderSide: BorderSide(
                                     color: greyColor.shade800, width: 2),
                               ),
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Colors.red.shade300, width: 2),
+                              border: const OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: lightRedColor, width: 2),
                               ),
                             ),
                           ),
@@ -769,45 +770,45 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                   if (kDebugMode) {
                     print('OrderData=====>>${orderData.toString()}');
                   }
-                  if(orderData.data != null){
+                  if (orderData.data != null) {
                     NimbblCheckoutOptions options = NimbblCheckoutOptions(
                         token: tokenData.token,
                         orderToken: orderData.data?.token,
                         orderID: orderData.data?.orderId,
-                        paymentModeCode:
-                        Utils().getPaymentModeCode(selectedPaymentType!.name),
+                        paymentModeCode: Utils()
+                            .getPaymentModeCode(selectedPaymentType!.name),
                         bankCode:
-                        Utils().getBankCode(selectedSubPaymentType!.name),
+                            Utils().getBankCode(selectedSubPaymentType!.name),
                         paymentFlow:
-                        Utils().getBankCode(selectedSubPaymentType!.name),
+                            Utils().getBankCode(selectedSubPaymentType!.name),
                         walletCode:
-                        Utils().getBankCode(selectedSubPaymentType!.name),
+                            Utils().getBankCode(selectedSubPaymentType!.name),
                         invoiceId: orderData.data?.invoiceId);
                     NimbblCheckoutSDK.instance
                         .init(context, NetworkHelper.baseUrl);
                     final result =
-                    await NimbblCheckoutSDK.instance.checkout(options);
+                        await NimbblCheckoutSDK.instance.checkout(options);
                     if (result != null) {
                       if (result.isSuccess!) {
-                        Utils.showToast(
-                            context, 'OrderId=${result.data?["order_id"]}, Status=${result.data?["status"]}'
-                        );
-                        Navigator.of(context).push( MaterialPageRoute(
-                            builder: (context) =>
-                                OrderSuccessView(
-                                  orderID:  result.data?["order_id"],
-                                  status:  result.data?["status"],
+                        Utils.showToast(context,
+                            '$orderIdStr${result.data?["order_id"]}, $statusStr${result.data?["status"]}');
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => OrderSuccessView(
+                                  orderID: result.data?["order_id"],
+                                  status: result.data?["status"],
                                 )));
                       } else {
-                        Utils.showToast(context,result.data?['message']);
+                        Utils.showToast(context, result.data?['message']);
                       }
-                      print(
-                          'isSucees-->${result.isSuccess}/message-->${result.data?['message']}');
+                      if (kDebugMode) {
+                        print(
+                            'isSucees-->${result.isSuccess}/message-->${result.data?['message']}');
+                      }
                     }
-                  }else{
-                    Utils.showToast(context,orderData.error!.error!.nimbblMerchantMessage!);
+                  } else {
+                    Utils.showToast(context,
+                        orderData.error!.error!.nimbblMerchantMessage!);
                   }
-
                 },
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.zero,
@@ -830,7 +831,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
               const Gap(40),
               Container(
                 //height: 282,
-                color: Colors.black,
+                color: blackColor,
                 child: Padding(
                   padding: const EdgeInsets.all(28.0),
                   child: Column(
@@ -848,7 +849,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                             child: Image.asset(
                               height: 26,
                               width: 49,
-                              "assets/images/nimbbl_logo.png",
+                              nimbblLogoImg,
                             ),
                           ),
                           const Gap(20),
