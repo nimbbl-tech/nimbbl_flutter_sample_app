@@ -141,7 +141,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                           thickness: 2,
                         ),
                         SizedBox(
-                          width: 106,
+                          width: 100,
                           height: 28,
                           child: Column(
                             children: [
@@ -158,7 +158,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                                   keyboardType: TextInputType.number,
                                   inputFormatters: <TextInputFormatter>[
                                     FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(8),
+                                    LengthLimitingTextInputFormatter(7),
                                   ],
                                   // Only numbers can be entered
                                 ),
@@ -634,7 +634,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                             height: 14,
                           ),
                           TextFormField(
-                            enableInteractiveSelection: false,
+                            enableInteractiveSelection: true,
                             cursorColor: greyColor.shade700,
                             controller: nameController,
                             decoration: InputDecoration(
@@ -661,7 +661,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                             height: 14,
                           ),
                           TextFormField(
-                            enableInteractiveSelection: false,
+                            enableInteractiveSelection: true,
                             keyboardType: TextInputType.phone,
                             inputFormatters: <TextInputFormatter>[
                               FilteringTextInputFormatter.digitsOnly,
@@ -701,7 +701,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                             height: 14,
                           ),
                           TextFormField(
-                            enableInteractiveSelection: false,
+                            enableInteractiveSelection: true,
                             cursorColor: greyColor.shade700,
                             controller: emailController,
                             autovalidateMode:
