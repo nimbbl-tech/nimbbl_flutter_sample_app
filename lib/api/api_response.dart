@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nimbbl_flutter_sample_app/api/result.dart';
 import 'package:nimbbl_flutter_sample_app/utils/helpers/utills.dart';
-import 'package:nimbbl_mobile_kit_flutter_webview_sdk/model/nimbbl_error_response.dart';
+import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/model/nimbbl_error_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/home_page_model/generate_token_vo.dart';

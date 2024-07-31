@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:nimbbl_mobile_kit_flutter_webview_sdk/utils/api_utils.dart';
+import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/utils/api_utils.dart';
 
 import '../colors.dart';
 
@@ -24,7 +24,8 @@ class Utils {
       case baseUrlPP:
         switch (header) {
           case "your brand name and brand logo":
-            return "access_key_1MwvMlANM5Lqk7ry";
+            return "access_key_WKO7dmkKnlwpBvdl";
+           // return "access_key_1MwvMlANM5Lqk7ry";
           case "your brand logo":
             return "access_key_94Y3mmW5YJEaa3dE";
           case "your brand name":
@@ -60,7 +61,8 @@ class Utils {
       case baseUrlPP:
         switch (header) {
           case "your brand name and brand logo":
-            return "access_secret_WKO7dnm5dpeRB3dl";
+            return "access_secret_ROG3K9DyyPOPL7kq";
+            //return "access_secret_WKO7dnm5dpeRB3dl";
           case "your brand logo":
             return "access_secret_rQv9VROL8RKPD3zg";
           case "your brand name":

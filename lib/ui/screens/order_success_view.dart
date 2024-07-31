@@ -1,9 +1,7 @@
 
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 
 import '../../utils/colors.dart';
-import '../../utils/constant_images.dart';
 import '../../utils/strings.dart';
 
 class OrderSuccessView extends StatefulWidget {
@@ -24,45 +22,30 @@ class _OrderSuccessViewState extends State<OrderSuccessView> {
           appBar: AppBar(
             iconTheme: const IconThemeData(color: whiteColor),
             backgroundColor: blackColor,
-            leading: Row(
-              children: [
-                const Gap(14),
-                Image.asset(
-                  height: 31,
-                  width: 85,
-                  headerLogoImg,
-                ),
-              ],
-            ),
-            titleSpacing: 0,
-            leadingWidth: 100,
             title: const Text(
-              header1,
+              'Order Success',
               //style:  context.gorditasTitle1.copyWith(
               style: TextStyle(
                   color: whiteColor, fontWeight: FontWeight.w600, fontSize: 16),
             ),
           ),
-          body:  Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Text("$orderIdStr${widget.orderID}",
-                    //style:  context.gorditasTitle1.copyWith(
-                    style: const TextStyle(
-                        color:blackColor, fontWeight: FontWeight.w600, fontSize: 16),
-                  ),
-                  const SizedBox(height: 10,),
-                   Text(
-                    '$statusStr${widget.status}',
-                    //style:  context.gorditasTitle1.copyWith(
-                    style: const TextStyle(
-                        color: blackColor, fontWeight: FontWeight.w600, fontSize: 16),
-                  )
-                ],
-              ),
+          body:  Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                 Text("$orderIdStr${widget.orderID}",
+                  //style:  context.gorditasTitle1.copyWith(
+                  style: const TextStyle(
+                      color:blackColor, fontWeight: FontWeight.w600, fontSize: 16),
+                ),
+                const SizedBox(height: 10,),
+                 Text(
+                  '$statusStr${widget.status}',
+                  //style:  context.gorditasTitle1.copyWith(
+                  style: const TextStyle(
+                      color: blackColor, fontWeight: FontWeight.w600, fontSize: 16),
+                )
+              ],
             ),
           ),
         ));

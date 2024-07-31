@@ -1,4 +1,4 @@
-import 'package:nimbbl_mobile_kit_flutter_webview_sdk/model/nimbbl_error_response.dart';
+import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/model/nimbbl_error_response.dart';
 
 class Result<T> {
   final T? data;

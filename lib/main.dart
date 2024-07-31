@@ -4,13 +4,14 @@ import 'package:nimbbl_flutter_sample_app/ui/screens/config_page_view.dart';
 import 'package:nimbbl_flutter_sample_app/ui/screens/order_create_data_values.dart';
 import 'package:nimbbl_flutter_sample_app/ui/screens/order_create_view.dart';
 import 'package:nimbbl_flutter_sample_app/utils/constants/constants.dart';
-import 'package:nimbbl_mobile_kit_flutter_webview_sdk/utils/api_utils.dart';
+import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/utils/api_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api/network_helper.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]).then((_) {
     runApp(const MyApp());

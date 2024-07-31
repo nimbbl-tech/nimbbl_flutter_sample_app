@@ -8,9 +8,10 @@ import 'package:gap/gap.dart';
 import 'package:nimbbl_flutter_sample_app/api/network_helper.dart';
 import 'package:nimbbl_flutter_sample_app/api/result.dart';
 import 'package:nimbbl_flutter_sample_app/ui/screens/order_success_view.dart';
-import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_options.dart';
+import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/model/nimbbl_checkout_options.dart';
+import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/utils/api_utils.dart';
+import 'package:nimbbl_mobile_kit_flutter_native_ui_sdk/nimbbl_checkout_flutter_sdk.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_sdk.dart';
-import 'package:nimbbl_mobile_kit_flutter_webview_sdk/utils/api_utils.dart';
 
 import '../../api/api_response.dart';
 import '../../model/home_page_model/generate_token_vo.dart';
@@ -770,39 +771,65 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                   if (kDebugMode) {
                     print('OrderData=====>>${orderData.toString()}');
                   }
+                  NimbblCheckoutOptions options = NimbblCheckoutOptions(
+                      token: tokenData.token,
+                      orderToken: orderData.data?.token,
+                      orderID: orderData.data?.orderId,
+                      paymentModeCode: Utils()
+                          .getPaymentModeCode(selectedPaymentType!.name),
+                      bankCode:
+                      Utils().getBankCode(selectedSubPaymentType!.name),
+                      paymentFlow:
+                      Utils().getBankCode(selectedSubPaymentType!.name),
+                      walletCode:
+                      Utils().getBankCode(selectedSubPaymentType!.name),
+                      invoiceId: orderData.data?.invoiceId);
                   if (orderData.data != null) {
-                    NimbblCheckoutOptions options = NimbblCheckoutOptions(
-                        token: tokenData.token,
-                        orderToken: orderData.data?.token,
-                        orderID: orderData.data?.orderId,
-                        paymentModeCode: Utils()
-                            .getPaymentModeCode(selectedPaymentType!.name),
-                        bankCode:
-                            Utils().getBankCode(selectedSubPaymentType!.name),
-                        paymentFlow:
-                            Utils().getBankCode(selectedSubPaymentType!.name),
-                        walletCode:
-                            Utils().getBankCode(selectedSubPaymentType!.name),
-                        invoiceId: orderData.data?.invoiceId);
-                    NimbblCheckoutSDK.instance
-                        .init(context, NetworkHelper.baseUrl);
-                    final result =
-                        await NimbblCheckoutSDK.instance.checkout(options);
-                    if (result != null) {
-                      if (result.isSuccess!) {
-                        Utils.showToast(context,
-                            '$orderIdStr${result.data?["order_id"]}, $statusStr${result.data?["status"]}');
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => OrderSuccessView(
-                                  orderID: result.data?["order_id"],
-                                  status: result.data?["status"],
-                                )));
-                      } else {
-                        Utils.showToast(context, result.data?['message']);
+                    if (selectedAppExperience == 'WebView') {
+                      NimbblCheckoutSDK.instance
+                          .init(context, NetworkHelper.baseUrl);
+                      final result =
+                          await NimbblCheckoutSDK.instance.checkout(options);
+                      if (result != null) {
+                        if (result.isSuccess!) {
+                          Utils.showToast(context,
+                              '$orderIdStr${result.data?["order_id"]}, $statusStr${result.data?["status"]}');
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => OrderSuccessView(
+                                    orderID: result.data?["order_id"],
+                                    status: result.data?["status"],
+                                  )));
+                        } else {
+                          Utils.showToast(context, result.data?['message']);
+                        }
+                        if (kDebugMode) {
+                          print(
+                              'isSuccess->${result.isSuccess}/message-->${result.data?['message']}');
+                        }
                       }
-                      if (kDebugMode) {
-                        print(
-                            'isSucees-->${result.isSuccess}/message-->${result.data?['message']}');
+                    }else {
+                      NimbblCheckoutFlutterSDK.instance
+                          .init(context, NetworkHelper.baseUrl);
+                      final result = await NimbblCheckoutFlutterSDK.instance.checkout(options);
+                      if (result != null) {
+                        if (result.isSuccess!) {
+                          Utils.showToast(context,
+                              '$orderIdStr${result.data?["order_id"]}, $statusStr${result
+                                  .data?["status"]}');
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) =>
+                                  OrderSuccessView(
+                                    orderID: result.data?["order_id"],
+                                    status: result.data?["status"],
+                                  )));
+                        } else {
+                          Utils.showToast(context, result.data?['message']);
+                        }
+                        if (kDebugMode) {
+                          print(
+                              'isSuccess-->${result.isSuccess}/message-->${result
+                                  .data?['message']}');
+                        }
                       }
                     }
                   } else {

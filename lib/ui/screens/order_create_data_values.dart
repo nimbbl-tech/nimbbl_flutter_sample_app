@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nimbbl_flutter_sample_app/api/network_helper.dart';
 import 'package:nimbbl_flutter_sample_app/ui/screens/config_page_view.dart';
-import 'package:nimbbl_mobile_kit_flutter_webview_sdk/utils/api_utils.dart';
+import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/utils/api_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
