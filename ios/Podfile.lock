@@ -12,13 +12,9 @@ PODS:
   - flutter_inappwebview_ios/Core (0.0.1):
     - Flutter
     - OrderedSet (~> 5.0)
-  - flutter_upi_india (1.0.0):
-    - Flutter
   - fluttertoast (0.0.2):
     - Flutter
     - Toast
-  - get_upi (0.0.1):
-    - Flutter
   - nimbbl_mobile_kit_flutter_webview_sdk (0.0.1):
     - Flutter
   - OrderedSet (5.0.0)
@@ -37,9 +33,7 @@ DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
-  - flutter_upi_india (from `.symlinks/plugins/flutter_upi_india/ios`)
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
-  - get_upi (from `.symlinks/plugins/get_upi/ios`)
   - nimbbl_mobile_kit_flutter_webview_sdk (from `.symlinks/plugins/nimbbl_mobile_kit_flutter_webview_sdk/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -59,12 +53,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_inappwebview_ios:
     :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
-  flutter_upi_india:
-    :path: ".symlinks/plugins/flutter_upi_india/ios"
   fluttertoast:
     :path: ".symlinks/plugins/fluttertoast/ios"
-  get_upi:
-    :path: ".symlinks/plugins/get_upi/ios"
   nimbbl_mobile_kit_flutter_webview_sdk:
     :path: ".symlinks/plugins/nimbbl_mobile_kit_flutter_webview_sdk/ios"
   path_provider_foundation:
@@ -79,9 +69,7 @@ SPEC CHECKSUMS:
   device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_inappwebview_ios: 97215cf7d4677db55df76782dbd2930c5e1c1ea0
-  flutter_upi_india: 76efc4cd742f0b0890e4eaa7421c73ff02245c71
   fluttertoast: e9a18c7be5413da53898f660530c56f35edfba9c
-  get_upi: 0844bbe5b833e69bb6e21b3eb9ba072c94ed4ef0
   nimbbl_mobile_kit_flutter_webview_sdk: 9bc543b0a0381bb4aed68606ca6f5a010bec4c77
   OrderedSet: aaeb196f7fef5a9edf55d89760da9176ad40b93c
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
