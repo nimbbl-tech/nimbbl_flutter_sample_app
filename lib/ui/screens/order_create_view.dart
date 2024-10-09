@@ -12,6 +12,7 @@ import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/model/nimbbl_checkout_opt
 import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/utils/api_utils.dart';
 import 'package:nimbbl_mobile_kit_flutter_native_ui_sdk/nimbbl_checkout_flutter_sdk.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_sdk.dart';
+import 'package:nimbbl_mobile_kit_flutter_webview_sdk/ui/local_web_url_entry_screen_view.dart';
 
 import '../../api/api_response.dart';
 import '../../model/home_page_model/generate_token_vo.dart';
@@ -34,6 +35,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
       paymentTypeList.isNotEmpty ? paymentTypeList.first : null;
   ImageWithName? selectedSubPaymentType =
       paymentTypeList.isNotEmpty ? netBankingSubPaymentTypeList.first : null;
+  int _tap = 0;
 
   @override
   void initState() {
@@ -50,10 +52,26 @@ class _OrderCreateViewState extends State<OrderCreateView> {
         leading: Row(
           children: [
             const Gap(14),
-            Image.asset(
-              height: 31,
-              width: 85,
-              headerLogoImg,
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _tap++;
+                });
+                if (_tap == 7) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LocalWeburlEntryscreen(),
+                    ),
+                  );
+                  _tap = 0;
+                }
+              },
+              child: Image.asset(
+                height: 31,
+                width: 85,
+                headerLogoImg,
+              ),
             ),
           ],
         ),
