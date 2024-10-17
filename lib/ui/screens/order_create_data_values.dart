@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nimbbl_flutter_sample_app/api/network_helper.dart';
 import 'package:nimbbl_flutter_sample_app/ui/screens/config_page_view.dart';
 import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/utils/api_utils.dart';
+import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_sdk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -15,7 +16,8 @@ List<String> countyTypeList = ['INR', 'USD', 'CAD', 'EUR'];
 
 final TextEditingController rspController = TextEditingController(text: '4');
 
-bool switchValue = false;
+bool _switchValue = true;
+bool get switchValue => _switchValue;
 
 //bool isLoading = true;
 
@@ -35,6 +37,8 @@ final List<Color> colorVal = [
   Colors.indigo.shade900,
   Colors.indigo.shade600,
 ];
+
+
 
 final List<IconWithName> paymentTypeList = [
   IconWithName(icon: Icons.dashboard_outlined, name: 'all payments modes'),
@@ -226,5 +230,9 @@ Future<void> onDone(
   }else if(environment == environmentTypeList[2]){
     NetworkHelper.baseUrl = baseUrlUAT;
   }
+  NimbblCheckoutSDK.instance.setEnvironmentUrl(NetworkHelper.baseUrl);
 
+}
+setSwitchValue(bool istrue){
+  _switchValue = istrue;
 }

@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+6
+version: 1.0.0+8
 
 environment:
   sdk: '>=3.3.4 <4.0.0'
@@ -42,17 +42,14 @@ dependencies:
   url_launcher: ^6.2.6
   fluttertoast: ^8.2.6
   win32: ^5.5.4
-  nimbbl_mobile_kit_flutter_webview_sdk: ^1.0.0
-  nimbbl_mobile_kit_flutter_native_ui_sdk: ^0.0.2
-
+  #nimbbl_mobile_kit_flutter_webview_sdk: ^1.0.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
 
-
-  #nimbbl_mobile_kit_flutter_webview_sdk:
-   # path: ../nimbbl_mobile_kit_flutter_webview_sdk
+  nimbbl_mobile_kit_flutter_webview_sdk:
+    path: ../nimbbl_mobile_kit_flutter_webview_sdk
 
   #nimbbl_mobile_kit_flutter_native_ui_sdk:
   #  path: ../nimbbl_mobile_kit_flutter_native_ui_sdk
