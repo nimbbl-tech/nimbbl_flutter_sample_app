@@ -23,12 +23,10 @@ class APIResponse {
   APIResponse._internal();
 
   Future<GenerateTokenVo> getToken(String accessKey, String secreteKey) async {
-    Map bodyData = {
-      "access_key": accessKey,
-      "access_secret": secreteKey
-    };
-    var dio = await NetworkHelper().getApiClient(false,'');
-    Response response = await dio.post(NetworkHelper.baseUrl+getTokenUrl, data: bodyData);
+    Map bodyData = {"access_key": accessKey, "access_secret": secreteKey};
+    var dio = await NetworkHelper().getApiClient(false, '');
+    Response response =
+        await dio.post(NetworkHelper.baseUrl + getTokenUrl, data: bodyData);
     var responseData = json.decode(response.data);
     if (kDebugMode) {
       print(responseData);
@@ -43,87 +41,54 @@ class APIResponse {
     return userVo;
   }
 
-  Future<Result<OrderDataResponseVo>> getOrderData(String currency, int price,String userFirstName,String userEmailId,String userMobileNumber,String token) async {
+  Future<Result<OrderDataResponseVo>> getOrderData(
+      String currency,
+      int price,
+      String userFirstName,
+      String userEmailId,
+      String userMobileNumber,
+      String productId,
+      String paymentCode,
+      String subPaymentCode,
+      ) async {
     String randomString = Utils().getRandomString(10);
     if (kDebugMode) {
       print('RandomString==>$randomString');
     }
-    String useraddressLine1 = "My address";
-    String userAddrStreet = "My street";
-    String userAddrLandmark = "My landmark";
-    String userAddrArea = "My area";
-    String userAddrCity = "My city";
-    String userAddrState = "My state";
-    String userAddrPin = "1234567";
 
 
     Map bodyData = {
       "currency": currency,
-      "total_amount": price,
-      "amount_before_tax": price,
-      "tax": 1,
-      "invoice_id": "inv_$randomString",
-      "referrer_platform": "flutter",
-      "referrer_platform_version": "2.0.0",
-      "callback_mode": "callback_mobile",
+      "amount": price.toString(),
+      "product_id": productId,
+      "orderLineItems": true,
+      "checkout_experience": "redirect",
+    "payment_mode": paymentCode,
+      "subPaymentMode": subPaymentCode,
       "user": {
         "email": userEmailId,
-        "first_name": userFirstName,
-        "last_name": "",
-        "country_code": "+91",
+        "name": userFirstName,
         "mobile_number": userMobileNumber,
       },
-      "shipping_address": {
-        "address_1":useraddressLine1,
-        "street": userAddrStreet,
-        "landmark": userAddrLandmark,
-        "area": userAddrArea,
-        "city": userAddrCity,
-        "state": userAddrState,
-        "pincode": userAddrPin,
-        "address_type": "residential"
-      }
     };
 
-    if(userMobileNumber.isEmpty){
-       bodyData = {
-        "currency": currency,
-        "total_amount": price,
-        "amount_before_tax": price,
-        "tax": 1,
-        "invoice_id": "inv_$randomString",
-        "referrer_platform": "flutter",
-        "referrer_platform_version": "2.0.0",
-        "callback_mode": "callback_mobile",
-        "shipping_address": {
-          "address_1":useraddressLine1,
-          "street": userAddrStreet,
-          "landmark": userAddrLandmark,
-          "area": userAddrArea,
-          "city": userAddrCity,
-          "state": userAddrState,
-          "pincode": userAddrPin,
-          "address_type": "residential"
-        }
-      };
-    }
-
     try {
-      var dio = await NetworkHelper().getApiClient(true,token);
-      Response response = await dio.post(NetworkHelper.baseUrl+getOrderDataUrl, data: bodyData);
+      var dio = await NetworkHelper().getApiClient(false,'');
+      Response response = await dio
+          .post(Utils().getShopUrl(NetworkHelper.baseUrl), data: bodyData);
       var responseData = json.decode(response.data);
       if (kDebugMode) {
         print(responseData);
       }
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         OrderDataResponseVo orderDataVo =
-        OrderDataResponseVo.fromJson(jsonDecode(response.data));
+            OrderDataResponseVo.fromJson(jsonDecode(response.data));
         return Result(data: orderDataVo);
       } else {
         return Result(
           error: NimbblErrorResponse(
-            error: NimbblError(nimbblMerchantMessage: 'Failed to load data.' ),
+            error: NimbblError(nimbblMerchantMessage: 'Failed to load data.'),
           ),
         );
       }
@@ -135,18 +100,16 @@ class APIResponse {
       } else {
         return Result(
           error: NimbblErrorResponse(
-            error: NimbblError(nimbblMerchantMessage: 'Failed to load data.' ),
+            error: NimbblError(nimbblMerchantMessage: 'Failed to load data.'),
           ),
         );
       }
     } catch (error) {
       return Result(
         error: NimbblErrorResponse(
-          error: NimbblError(nimbblMerchantMessage: 'Unexpected error.' ),
+          error: NimbblError(nimbblMerchantMessage: 'Unexpected error.'),
         ),
       );
     }
-
   }
-
 }

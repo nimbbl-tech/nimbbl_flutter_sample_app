@@ -765,13 +765,6 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                       ? selectedHeaderEnabled
                       : selectedHeaderDisable;
 
-                  GenerateTokenVo tokenData = await APIResponse().getToken(
-                      Utils().getAccessKey(NetworkHelper.baseUrl, testMerchant),
-                      Utils().getAccessSecret(
-                          NetworkHelper.baseUrl, testMerchant));
-                  if (kDebugMode) {
-                    print('TokenData=====>>${tokenData.token.toString()}');
-                  }
 
                   Result<OrderDataResponseVo>? orderData = await APIResponse()
                       .getOrderData(
@@ -786,14 +779,16 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                           numberController.text.toString().isEmpty
                               ? ''
                               : numberController.text.toString(),
-                          tokenData.token!);
+                    Utils().getProductID(testMerchant),
+                      Utils().getPaymentModeCode(selectedPaymentType!.name),
+                      Utils().getBankCode(selectedSubPaymentType!.name)
+
+                  );
                   if (kDebugMode) {
                     print('OrderData=====>>${orderData.toString()}');
                   }
                   NimbblCheckoutOptions options = NimbblCheckoutOptions(
-                      token: tokenData.token,
                       orderToken: orderData.data?.token,
-                      orderID: orderData.data?.orderId,
                       paymentModeCode:
                           Utils().getPaymentModeCode(selectedPaymentType!.name),
                       bankCode:
@@ -801,8 +796,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                       paymentFlow:
                           Utils().getBankCode(selectedSubPaymentType!.name),
                       walletCode:
-                          Utils().getBankCode(selectedSubPaymentType!.name),
-                      invoiceId: orderData.data?.invoiceId);
+                          Utils().getBankCode(selectedSubPaymentType!.name),);
                   if (orderData.data != null) {
                     if (selectedAppExperience == 'WebView') {
                       if (!mounted) return;

@@ -16,79 +16,29 @@ class Utils {
 
   Utils._internal();
 
-  String getAccessKey(String url, String header) {
+  String getProductID(String header) {
     if (kDebugMode) {
-      print("url---->$url/////header--->$header");
+      print("header--->$header");
     }
-    switch (url) {
-      case baseUrlPP:
-        switch (header) {
-          case "your brand name and brand logo":
-            return "access_key_WKO7dmkKnlwpBvdl";
-           // return "access_key_1MwvMlANM5Lqk7ry";
-          case "your brand logo":
-            return "access_key_94Y3mmW5YJEaa3dE";
-          case "your brand name":
-            return "access_key_mVG3568XjBZON0kZ";
-        }
-        break;
-      case baseUrlUAT:
-        switch (header) {
-          case "your brand name and brand logo":
-            return "access_key_RqLva5xqjjWxAvQZ";
-          case "your brand logo":
-            return "access_key_Pm43nNr6RVQZA3GL";
-          case "your brand name":
-            return "access_key_j8w0yLqDzRmqp3Ba";
-        }
-        break;
-      case baseUrlPROD:
-        switch (header) {
-          case "your brand name and brand logo":
-            return "access_key_ZR7ldjnlkbYNb79p";
-          case "your brand logo":
-            return "access_key_1x7BwgJqbDwoJv5N";
-          case "your brand name":
-            return "access_key_NYP0EX4rb55YM3GD";
-        }
-        break;
+    switch (header) {
+      case "your brand name and brand logo":
+        return "11";
+      case "your brand logo":
+        return "12";
+      case "your brand name":
+        return "13";
     }
     return "";
   }
 
-  String getAccessSecret(String url, String header) {
+  String getShopUrl(String url) {
     switch (url) {
       case baseUrlPP:
-        switch (header) {
-          case "your brand name and brand logo":
-            return "access_secret_ROG3K9DyyPOPL7kq";
-            //return "access_secret_WKO7dnm5dpeRB3dl";
-          case "your brand logo":
-            return "access_secret_rQv9VROL8RKPD3zg";
-          case "your brand name":
-            return "access_secret_6EAvqK8jg4Lwr0PD";
-        }
-        break;
+        return "https://sonicshopapipp.nimbbl.tech/create-shop";
       case baseUrlUAT:
-        switch (header) {
-          case "your brand name and brand logo":
-            return "access_secret_aKQvPDKGxemWjv9z";
-          case "your brand logo":
-            return "access_secret_ArL0OVMBZOnXM3zP";
-          case "your brand name":
-            return "access_secret_wlvDmqjR9njxB3JQ";
-        }
-        break;
+        return "https://qa2sonicshopapi.nimbbl.tech/create-shop";
       case baseUrlPROD:
-        switch (header) {
-          case "your brand name and brand logo":
-            return "access_secret_RqLvaLNYb4bAA7QZ";
-          case "your brand logo":
-            return "access_secret_1x7BwgJqbDwoJv5N";
-          case "your brand name":
-            return "access_secret_NYP0EX4rb55YM3GD";
-        }
-        break;
+        return "https://sonicshopapi.nimbbl.tech/create-shop";
     }
     return "";
   }
