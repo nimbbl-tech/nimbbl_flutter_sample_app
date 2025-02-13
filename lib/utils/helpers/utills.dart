@@ -36,7 +36,7 @@ class Utils {
       case baseUrlPP:
         return "https://sonicshopapipp.nimbbl.tech/create-shop";
       case baseUrlUAT:
-        return "https://qa2sonicshopapi.nimbbl.tech/create-shop";
+        return "https://qa1sonicshopapi.nimbbl.tech/create-shop";
       case baseUrlPROD:
         return "https://sonicshopapi.nimbbl.tech/create-shop";
     }
