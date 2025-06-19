@@ -63,7 +63,10 @@ class _HomePageState extends State<HomePage> {
     }else if(envValue == environmentTypeList[1]){
       NetworkHelper.baseUrl = baseUrlPP;
     }else if(envValue == environmentTypeList[2]){
-      NetworkHelper.baseUrl = baseUrlUAT;
+      NetworkHelper.baseUrl = baseUrlQA1;
+    }
+    else if(envValue == environmentTypeList[3]){
+      NetworkHelper.baseUrl = baseUrlQA2;
     }
 
   }

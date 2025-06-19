@@ -35,10 +35,12 @@ class Utils {
     switch (url) {
       case baseUrlPP:
         return "https://sonicshopapipp.nimbbl.tech/create-shop";
-      case baseUrlUAT:
-        return "https://qa1sonicshopapi.nimbbl.tech/create-shop";
       case baseUrlPROD:
         return "https://sonicshopapi.nimbbl.tech/create-shop";
+      case baseUrlQA1:
+        return "https://qa1sonicshopapi.nimbbl.tech/create-shop";
+      case baseUrlQA2:
+        return "https://qa2sonicshopapi.nimbbl.tech/create-shop";
     }
     return "";
   }

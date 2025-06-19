@@ -186,7 +186,8 @@ bool navigatedFromHome = false;
 List<String> environmentTypeList = [
   'Prod',
   'Pre-Prod',
-  'Uat',
+  'QA 1',
+  'QA 2',
 ];
 
 String _selectedEnvironment = environmentTypeList.first;
@@ -228,7 +229,10 @@ Future<void> onDone(
   }else if(environment == environmentTypeList[1]){
     NetworkHelper.baseUrl = baseUrlPP;
   }else if(environment == environmentTypeList[2]){
-    NetworkHelper.baseUrl = baseUrlUAT;
+    NetworkHelper.baseUrl = baseUrlQA1;
+  }
+  else if(environment == environmentTypeList[3]){
+    NetworkHelper.baseUrl = baseUrlQA2;
   }
   NimbblCheckoutSDK.instance.setEnvironmentUrl(NetworkHelper.baseUrl);
 
