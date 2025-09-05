@@ -46,16 +46,13 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  nimbbl_mobile_kit_flutter_webview_sdk: ^1.0.10
+  #nimbbl_mobile_kit_flutter_webview_sdk: ^1.0.10
 
-#  nimbbl_mobile_kit_flutter_webview_sdk:
-#    path: ../nimbbl_mobile_kit_flutter_webview_sdk
+  nimbbl_mobile_kit_flutter_webview_sdk:
+    path: ../nimbbl_mobile_kit_flutter_webview_sdk
 
   #nimbbl_mobile_kit_flutter_native_ui_sdk:
-  #  path: ../nimbbl_mobile_kit_flutter_native_ui_sdk
-
-  #nimbbl_mobile_kit_flutter_core_api_sdk:
-    #path: ../nimbbl_mobile_kit_flutter_core_api_sdk
+    #path: ../nimbbl_mobile_kit_flutter_native_ui_sdk
 
 dev_dependencies:
   flutter_test:

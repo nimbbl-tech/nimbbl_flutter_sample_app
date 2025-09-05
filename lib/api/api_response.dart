@@ -42,20 +42,19 @@ class APIResponse {
   }
 
   Future<Result<OrderDataResponseVo>> getOrderData(
-      String currency,
-      int price,
-      String userFirstName,
-      String userEmailId,
-      String userMobileNumber,
-      String productId,
-      String paymentCode,
-      String subPaymentCode,
-      ) async {
+    String currency,
+    int price,
+    String userFirstName,
+    String userEmailId,
+    String userMobileNumber,
+    String productId,
+    String paymentCode,
+    String subPaymentCode,
+  ) async {
     String randomString = Utils().getRandomString(10);
     if (kDebugMode) {
       print('RandomString==>$randomString');
     }
-
 
     Map bodyData = {
       "currency": currency,
@@ -63,7 +62,7 @@ class APIResponse {
       "product_id": productId,
       "orderLineItems": true,
       "checkout_experience": "redirect",
-    "payment_mode": paymentCode,
+      "payment_mode": paymentCode,
       "subPaymentMode": subPaymentCode,
       "user": {
         "email": userEmailId,
@@ -73,7 +72,7 @@ class APIResponse {
     };
 
     try {
-      var dio = await NetworkHelper().getApiClient(false,'');
+      var dio = await NetworkHelper().getApiClient(false, '');
       Response response = await dio
           .post(Utils().getShopUrl(NetworkHelper.baseUrl), data: bodyData);
       var responseData = json.decode(response.data);

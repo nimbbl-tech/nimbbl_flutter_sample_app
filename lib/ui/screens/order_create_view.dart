@@ -5,16 +5,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
-import 'package:nimbbl_flutter_sample_app/api/network_helper.dart';
 import 'package:nimbbl_flutter_sample_app/api/result.dart';
 import 'package:nimbbl_flutter_sample_app/ui/screens/order_success_view.dart';
+import 'package:nimbbl_flutter_sample_app/utils/validation_utils.dart';
 import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/model/nimbbl_checkout_options.dart';
 import 'package:nimbbl_mobile_kit_flutter_core_api_sdk/utils/api_utils.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_sdk.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/ui/local_web_url_entry_screen_view.dart';
 
 import '../../api/api_response.dart';
-import '../../model/home_page_model/generate_token_vo.dart';
 import '../../model/home_page_model/order_data_response_vo.dart';
 import '../../utils/colors.dart';
 import '../../utils/constant_images.dart';
@@ -275,9 +274,9 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                           inactiveThumbColor: whiteColor,
                           inactiveTrackColor: greyColor[300],
                           trackOutlineWidth:
-                              MaterialStateProperty.resolveWith<double>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.selected)) {
+                              WidgetStateProperty.resolveWith<double>(
+                            (Set<WidgetState> states) {
+                              if (states.contains(WidgetState.selected)) {
                                 return 0.5; // Custom outline width for disabled state
                               }
                               return 0.1; // Default outline width
@@ -323,7 +322,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                       elevation: 8,
                       scrollbarTheme: ScrollbarThemeData(
                         radius: const Radius.circular(40),
-                        thickness: MaterialStateProperty.all(4),
+                        thickness: WidgetStateProperty.all(4),
                       )),
                   decoration: InputDecoration(
                     enabledBorder: OutlineInputBorder(
@@ -434,7 +433,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                     elevation: 8,
                     scrollbarTheme: ScrollbarThemeData(
                       radius: const Radius.circular(40),
-                      thickness: MaterialStateProperty.all(4),
+                      thickness: WidgetStateProperty.all(4),
                     )),
                 decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
@@ -544,7 +543,7 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                               elevation: 8,
                               scrollbarTheme: ScrollbarThemeData(
                                 radius: const Radius.circular(40),
-                                thickness: MaterialStateProperty.all(4),
+                                thickness: WidgetStateProperty.all(4),
                               )),
                           value: selectedSubPaymentType,
                           onChanged: (ImageWithName? newValue) {
@@ -726,10 +725,12 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                             controller: emailController,
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
-                            validator: (value) =>
-                                EmailValidator.validate(value!)
-                                    ? null
-                                    : 'Invalid Email',
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return null; // Email is optional
+                              }
+                              return EmailValidator.validate(value) ? null : 'Invalid Email';
+                            },
                             decoration: InputDecoration(
                               labelStyle: const TextStyle(
                                 color: blackColor,
@@ -761,89 +762,88 @@ class _OrderCreateViewState extends State<OrderCreateView> {
                     ),
               ElevatedButton(
                 onPressed: () async {
-                  String testMerchant = switchValue == true
-                      ? selectedHeaderEnabled
-                      : selectedHeaderDisable;
+                  try {
+                    // Validate and sanitize inputs
+                    final validatedName = SampleAppValidationUtils.validateName(nameController.text.toString());
+                    final validatedEmail = SampleAppValidationUtils.validateEmail(emailController.text.toString());
+                    final validatedPhone = SampleAppValidationUtils.validatePhoneNumber(numberController.text.toString());
+                    final validatedAmount = SampleAppValidationUtils.validateAmount(rspController.text.toString());
+                    
+                    // Sanitize merchant selection
+                    final sanitizedMerchant = SampleAppValidationUtils.sanitizeInput(
+                        switchValue == true ? selectedHeaderEnabled : selectedHeaderDisable);
 
+                    Result<OrderDataResponseVo>? orderData = await APIResponse()
+                        .getOrderData(
+                            selectedCountryType,
+                            validatedAmount!,
+                            validatedName ?? '',
+                            validatedEmail ?? '',
+                            validatedPhone ?? '',
+                            Utils().getProductID(sanitizedMerchant),
+                            Utils().getPaymentModeCode(selectedPaymentType!.name),
+                            Utils().getBankCode(selectedSubPaymentType!.name)
+                        );
+                    if (kDebugMode) {
+                      print('OrderData=====>> ${orderData.toString()}');
+                    }
+                    
+                    // --- Refactored parameter logic ---
+                    String? paymentModeCode = Utils().getPaymentModeCode(selectedPaymentType!.name);
+                    String? bankCode;
+                    String? walletCode;
+                    String? paymentFlow;
 
-                  Result<OrderDataResponseVo>? orderData = await APIResponse()
-                      .getOrderData(
-                          selectedCountryType,
-                          int.tryParse(rspController.text.toString()) ?? 4,
-                          nameController.text.toString().isEmpty
-                              ? ''
-                              : nameController.text.toString(),
-                          emailController.text.toString().isEmpty
-                              ? ''
-                              : emailController.text.toString(),
-                          numberController.text.toString().isEmpty
-                              ? ''
-                              : numberController.text.toString(),
-                    Utils().getProductID(testMerchant),
-                      Utils().getPaymentModeCode(selectedPaymentType!.name),
-                      Utils().getBankCode(selectedSubPaymentType!.name)
+                    if (paymentModeCode == "Netbanking") {
+                      bankCode = Utils().getBankCode(selectedSubPaymentType!.name);
+                    }
+                    if (paymentModeCode == "Wallet") {
+                      walletCode = Utils().getWalletCode(selectedSubPaymentType!.name);
+                    }
+                    if (paymentModeCode == "UPI") {
+                      paymentFlow = Utils().getPaymentFlow(selectedSubPaymentType!.name);
+                    }
 
-                  );
-                  if (kDebugMode) {
-                    print('OrderData=====>>${orderData.toString()}');
-                  }
-                  NimbblCheckoutOptions options = NimbblCheckoutOptions(
-                      orderToken: orderData.data?.token,
-                      paymentModeCode:
-                          Utils().getPaymentModeCode(selectedPaymentType!.name),
-                      bankCode:
-                          Utils().getBankCode(selectedSubPaymentType!.name),
-                      paymentFlow:
-                          Utils().getBankCode(selectedSubPaymentType!.name),
-                      walletCode:
-                          Utils().getBankCode(selectedSubPaymentType!.name),);
-                  if (orderData.data != null) {
-                    if (selectedAppExperience == 'WebView') {
-                      if (!mounted) return;
-                      final result =
-                          await NimbblCheckoutSDK.instance.checkout(options);
-                      if (result != null) {
-                        if (result.isSuccess!) {
-                          Utils.showToast(context,
-                              '$orderIdStr${result.data?["order_id"]}, $statusStr${result.data?["status"]}');
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => OrderSuccessView(
-                                    orderID: result.data?["order_id"],
-                                    status: result.data?["status"],
-                                  )));
-                        } else {
-                          Utils.showToast(context, result.data?['message']);
-                        }
-                        if (kDebugMode) {
-                          print(
-                              'isSuccess->${result.isSuccess}/message-->${result.data?['message']}');
+                    NimbblCheckoutOptions options = NimbblCheckoutOptions(
+                        orderToken: orderData.data?.token,
+                        paymentModeCode: paymentModeCode,
+                        bankCode: bankCode,
+                        walletCode: walletCode,
+                        paymentFlow: paymentFlow,
+                    );
+                    // --- End refactor ---
+                    
+                    if (orderData.data != null) {
+                      if (selectedAppExperience == 'WebView') {
+                        if (!mounted) return;
+                        final result = await NimbblCheckoutSDK.instance.checkout(options);
+                        if (result != null) {
+                          if (result.isSuccess!) {
+                            Utils.showToast(context,
+                                '$orderIdStr${result.data?["order_id"]}, $statusStr${result.data?["status"]}');
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => OrderSuccessView(
+                                      orderID: result.data?["order_id"],
+                                      status: result.data?["status"],
+                                    )));
+                          } else {
+                            Utils.showToast(context, result.data?['message'] ?? 'Payment failed');
+                          }
+                          if (kDebugMode) {
+                            print('isSuccess->${result.isSuccess}/message-->${result.data?['message']}');
+                          }
                         }
                       }
                     } else {
-/*                      NimbblCheckoutFlutterSDK.instance.init(context);
-                      final result = await NimbblCheckoutFlutterSDK.instance
-                          .checkout(options);
-                      if (result != null) {
-                        if (result.isSuccess!) {
-                          Utils.showToast(context,
-                              '$orderIdStr${result.data?["order_id"]}, $statusStr${result.data?["status"]}');
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => OrderSuccessView(
-                                    orderID: result.data?["order_id"],
-                                    status: result.data?["status"],
-                                  )));
-                        } else {
-                          Utils.showToast(context, result.data?['message']);
-                        }
-                        if (kDebugMode) {
-                          print(
-                              'isSuccess-->${result.isSuccess}/message-->${result.data?['message']}');
-                        }
-                      }*/
+                      Utils.showToast(context,
+                          orderData.error?.error?.nimbblMerchantMessage ?? 'Failed to create order');
                     }
-                  } else {
-                    Utils.showToast(context,
-                        orderData.error!.error!.nimbblMerchantMessage!);
+                  } catch (e) {
+                    // Handle validation errors
+                    Utils.showToast(context, 'Validation error: ${e.toString()}');
+                    if (kDebugMode) {
+                      print('Validation error: $e');
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(

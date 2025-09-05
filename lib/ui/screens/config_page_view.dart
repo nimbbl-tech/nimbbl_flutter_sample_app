@@ -83,7 +83,7 @@ class _ConfigPageViewState extends State<ConfigPageView> {
                   elevation: 8,
                   scrollbarTheme: ScrollbarThemeData(
                     radius: const Radius.circular(40),
-                    thickness: MaterialStateProperty.all(4),
+                    thickness: WidgetStateProperty.all(4),
                   )),
               decoration: InputDecoration(
                 enabledBorder: UnderlineInputBorder(
@@ -149,7 +149,7 @@ class _ConfigPageViewState extends State<ConfigPageView> {
                   elevation: 8,
                   scrollbarTheme: ScrollbarThemeData(
                     radius: const Radius.circular(40),
-                    thickness: MaterialStateProperty.all(4),
+                    thickness: WidgetStateProperty.all(4),
                   )),
               decoration: InputDecoration(
                 enabledBorder: UnderlineInputBorder(
