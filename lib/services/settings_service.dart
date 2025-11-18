@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../domain/models/settings_data.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../core/constants/api_constants.dart';
+import '../core/constants/api_constants.dart';
+import '../core/constants/app_constants.dart';
+import '../models/settings_data.dart';
 
-/// Provider for managing application settings - Matching Android app approach
-class SettingsProvider extends ChangeNotifier {
+/// Service for managing application settings - Singleton pattern
+class SettingsService {
+  static final SettingsService _instance = SettingsService._internal();
+  factory SettingsService() => _instance;
+  SettingsService._internal();
+
   SettingsData _settingsData = SettingsData(
     environment: AppConstants.defaultEnvironment,
     qaUrl: ApiConstants.defaultQaUrl,
@@ -16,12 +20,11 @@ class SettingsProvider extends ChangeNotifier {
 
   SettingsData get settingsData => _settingsData;
 
-  SettingsProvider() {
-    _loadSettings();
-  }
+  // Callback for notifying listeners when settings change
+  VoidCallback? onSettingsChanged;
 
-  /// Load settings from SharedPreferences - Matching Android app approach
-  Future<void> _loadSettings() async {
+  /// Initialize and load settings from SharedPreferences
+  Future<void> loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       
@@ -54,17 +57,16 @@ class SettingsProvider extends ChangeNotifier {
         baseUrl: savedBaseUrl,
       );
 
-      notifyListeners();
+      onSettingsChanged?.call();
     } catch (error) {
-      debugPrint('🔧 SettingsProvider: Error loading settings: $error');
+      debugPrint('SettingsService: Error loading settings: $error');
     }
   }
 
-  /// Update settings data and persist to SharedPreferences - Matching Android app approach
+  /// Update settings data and persist to SharedPreferences
   Future<void> updateSettingsData(SettingsData updates) async {
     try {
       _settingsData = updates;
-      notifyListeners();
 
       final prefs = await SharedPreferences.getInstance();
       
@@ -85,10 +87,10 @@ class SettingsProvider extends ChangeNotifier {
       
       // Update the baseUrl in settings data
       _settingsData = _settingsData.copyWith(baseUrl: baseUrl);
-      notifyListeners();
+      onSettingsChanged?.call();
       
     } catch (error) {
-      debugPrint('🔧 SettingsProvider: Error saving settings: $error');
+      debugPrint('SettingsService: Error saving settings: $error');
     }
   }
 
@@ -119,7 +121,47 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   /// Clear cache and reload settings
+  /// Ensures current settings are saved before reloading
   Future<void> clearCacheAndReload() async {
-    await _loadSettings();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Get the latest QA URL from SharedPreferences in case it was just updated
+      // This ensures we use the most recent value
+      final latestQaUrl = prefs.getString(AppConstants.qaEnvironmentUrlKey) ?? _settingsData.qaUrl;
+      final currentQaUrl = _settingsData.qaUrl.isNotEmpty ? _settingsData.qaUrl : latestQaUrl;
+      
+      // Calculate and save the baseUrl based on current environment
+      String baseUrl = ApiConstants.defaultEnvironment;
+      if (_settingsData.environment == AppConstants.environmentProd) {
+        baseUrl = ApiConstants.baseUrlProd;
+      } else if (_settingsData.environment == AppConstants.environmentPreProd) {
+        baseUrl = ApiConstants.baseUrlPreProd;
+      } else if (_settingsData.environment == AppConstants.environmentQA) {
+        // Use the current QA URL (from _settingsData or latest from prefs)
+        baseUrl = _formatUrl(currentQaUrl);
+      }
+      
+      // Save all preferences with current values
+      await prefs.setString(AppConstants.shopBaseUrlKey, baseUrl);
+      await prefs.setString(AppConstants.qaEnvironmentUrlKey, currentQaUrl);
+      await prefs.setString(AppConstants.sampleAppModeKey, _settingsData.experience);
+      
+      // Update the baseUrl in current settings data WITHOUT reloading
+      // This ensures the current environment is preserved
+      _settingsData = SettingsData(
+        environment: _settingsData.environment, // Preserve current environment
+        qaUrl: currentQaUrl, // Use the latest QA URL
+        experience: _settingsData.experience, // Preserve current experience
+        baseUrl: baseUrl, // Update with calculated baseUrl
+      );
+      
+      // Notify listeners so UI and other services get the updated settings
+      onSettingsChanged?.call();
+      
+    } catch (error) {
+      debugPrint('SettingsService: Error in clearCacheAndReload: $error');
+    }
   }
 }
+

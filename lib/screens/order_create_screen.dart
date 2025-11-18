@@ -1,79 +1,345 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../../../../core/constants/app_constants.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../shared/constants/app_strings.dart';
-import '../../../../shared/widgets/order_create_data_values.dart';
-import '../providers/order_provider.dart';
+import '../core/constants/app_constants.dart';
+import '../core/theme/app_theme.dart';
+import '../models/order_data.dart';
+import '../services/payment_service.dart';
+import '../services/settings_service.dart';
+import '../shared/constants/app_strings.dart';
+import '../shared/constants/order_create_data_values.dart';
+import 'order_success_screen.dart';
+import 'settings_screen.dart';
 
-/// Form widget for order creation
-class OrderFormWidget extends StatelessWidget {
-  const OrderFormWidget({super.key});
+/// Main order creation screen
+class OrderCreateScreen extends StatefulWidget {
+  const OrderCreateScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<OrderProvider>(
-      builder: (context, orderProvider, child) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Product Image Card
-              _buildProductCard(),
-              const SizedBox(height: AppConstants.defaultPadding),
-              
-              // Product Details (Title, Currency, Amount in one row)
-              _buildProductDetails(orderProvider),
-              const SizedBox(height: AppConstants.defaultPadding),
-              
-              // Transaction Info Section
-              _buildTransactionInfoSection(),
-              const SizedBox(height: AppConstants.defaultPadding),
-              
-              // Order Line Items Section
-              _buildOrderLineItemsSection(orderProvider),
-              const SizedBox(height: AppConstants.defaultPadding),
-              
-              // Header Customisation Section
-              _buildHeaderCustomisationSection(orderProvider),
-              const SizedBox(height: AppConstants.defaultPadding),
-              
-              // Payment Customisation Section
-              _buildPaymentCustomisationSection(orderProvider),
-              const SizedBox(height: AppConstants.defaultPadding),
-              
-              // Sub Payment Customisation Section
-              if (_shouldShowSubPayment(orderProvider.orderData.paymentCustomisation))
-                _buildSubPaymentCustomisationSection(orderProvider),
-              if (_shouldShowSubPayment(orderProvider.orderData.paymentCustomisation))
-                const SizedBox(height: AppConstants.defaultPadding),
-              
-              // User Details Section
-              _buildUserDetailsSection(orderProvider),
-              const SizedBox(height: AppConstants.defaultPadding),
-              
-              // User Detail Input Fields
-              if (orderProvider.orderData.userDetails)
-                _buildUserDetailInputFields(orderProvider),
-              if (orderProvider.orderData.userDetails)
-                const SizedBox(height: AppConstants.defaultPadding),
-              
-              // Pay Button
-              _buildPayButton(context, orderProvider),
-              const SizedBox(height: AppConstants.largePadding),
-              
-              // Bottom spacer (matching React Native structure)
-              const SizedBox(height: 30),
-            ],
+  State<OrderCreateScreen> createState() => _OrderCreateScreenState();
+}
+
+class _OrderCreateScreenState extends State<OrderCreateScreen> {
+  final PaymentService _paymentService = PaymentService();
+  final SettingsService _settingsService = SettingsService();
+  late TextEditingController _amountController;
+
+  // Order Data
+  OrderData _orderData = OrderData(
+    amount: AppConstants.defaultAmount,
+    currency: AppConstants.defaultCurrency,
+    orderLineItems: true,
+    headerCustomisation: headerCustomTypeEnabledList.first.name,
+    paymentCustomisation: AppConstants.defaultPaymentMode,
+    subPaymentCustomisation: AppConstants.defaultSubPaymentMode,
+    userDetails: false,
+    firstName: '',
+    mobileNumber: '',
+    email: '',
+  );
+
+  // Payment State
+  bool _isPaymentLoading = false;
+  String? _paymentError;
+  Map<String, dynamic>? _checkoutResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeOrderData();
+    _amountController = TextEditingController(text: _orderData.amount);
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  void _initializeOrderData() {
+    final headerOptions = _orderData.orderLineItems ? headerCustomTypeEnabledList : headerCustomTypeDisabledList;
+    final defaultHeaderCustomisation = headerOptions.isNotEmpty ? headerOptions.first.name : '';
+    
+    setState(() {
+      _orderData = _orderData.copyWith(
+        headerCustomisation: defaultHeaderCustomisation,
+      );
+    });
+  }
+
+  void _handleCheckoutResult() {
+    if (_checkoutResult != null) {
+      final checkoutResult = _checkoutResult;
+      // Clear the checkout result immediately to prevent duplicate navigation
+      setState(() {
+        _checkoutResult = null;
+      });
+      
+      // Navigate to success screen (handles both success and failure cases)
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => OrderSuccessScreen(
+            paymentData: checkoutResult!,
           ),
-        );
-      },
+        ),
+      ).then((_) {
+        // Reset state when returning from success screen
+        // This allows for new payments to be processed
+      });
+    }
+  }
+
+  void _updateOrderField({
+    String? amount,
+    String? currency,
+    bool? orderLineItems,
+    String? headerCustomisation,
+    String? paymentCustomisation,
+    String? subPaymentCustomisation,
+    bool? userDetails,
+    String? firstName,
+    String? mobileNumber,
+    String? email,
+  }) {
+    setState(() {
+      _orderData = _orderData.copyWith(
+        amount: amount,
+        currency: currency,
+        orderLineItems: orderLineItems,
+        headerCustomisation: headerCustomisation,
+        paymentCustomisation: paymentCustomisation,
+        subPaymentCustomisation: subPaymentCustomisation,
+        userDetails: userDetails,
+        firstName: firstName,
+        mobileNumber: mobileNumber,
+        email: email,
+      );
+      if (amount != null && _amountController.text != amount) {
+        _amountController.text = amount;
+      }
+    });
+  }
+
+  void _handlePaymentTypeChange(String paymentType) {
+    String defaultSubPayment = '';
+    if (paymentType == 'netbanking') {
+      defaultSubPayment = 'all banks';
+    } else if (paymentType == 'wallet') {
+      defaultSubPayment = 'all wallets';
+    } else if (paymentType == 'upi') {
+      defaultSubPayment = 'collect + intent';
+    }
+
+    _updateOrderField(
+      paymentCustomisation: paymentType,
+      subPaymentCustomisation: defaultSubPayment,
     );
   }
 
+  void _handleOrderLineItemsChange(bool value) {
+    final newOptions = value ? headerCustomTypeEnabledList : headerCustomTypeDisabledList;
+    final newHeaderCustomisation = newOptions.isNotEmpty ? newOptions.first.name : '';
+    _updateOrderField(
+      orderLineItems: value,
+      headerCustomisation: newHeaderCustomisation,
+    );
+  }
+
+  Future<void> _processPayment() async {
+    if (_isPaymentLoading) return;
+
+    debugPrint('Starting payment process...');
+    setState(() {
+      _isPaymentLoading = true;
+      _paymentError = null;
+    });
+
+    try {
+      debugPrint('Order data: ${_orderData.toString()}');
+      debugPrint('Settings data: ${_settingsService.settingsData.toString()}');
+      
+      final checkoutResult = await _paymentService.processPayment(
+        _orderData,
+        _settingsService.settingsData,
+      );
+
+      debugPrint('Payment service result: $checkoutResult');
+
+      // Only navigate to result screen if there was an actual payment attempt
+      if (checkoutResult.containsKey('success') && checkoutResult['success'] == false) {
+        // This is an order creation failure - don't navigate to result screen
+        setState(() {
+          _paymentError = checkoutResult['errorMessage'] ?? 'Failed to create order';
+          _isPaymentLoading = false;
+        });
+        debugPrint('Order creation failed: $_paymentError');
+      } else {
+        // This is an actual payment result - navigate to result screen
+        setState(() {
+          _checkoutResult = checkoutResult;
+          _isPaymentLoading = false;
+        });
+        _handleCheckoutResult();
+      }
+    } catch (error) {
+      setState(() {
+        _paymentError = 'An unexpected error occurred during payment';
+        _isPaymentLoading = false;
+      });
+      debugPrint('Payment Error: $error');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            _buildHeader(),
+            
+            // Scrollable Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Image Card
+                    _buildProductCard(),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    
+                    // Product Details (Title, Currency, Amount in one row)
+                    _buildProductDetails(),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    
+                    // Transaction Info Section
+                    _buildTransactionInfoSection(),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    
+                    // Order Line Items Section
+                    _buildOrderLineItemsSection(),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    
+                    // Header Customisation Section
+                    _buildHeaderCustomisationSection(),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    
+                    // Payment Customisation Section
+                    _buildPaymentCustomisationSection(),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    
+                    // Sub Payment Customisation Section
+                    if (_shouldShowSubPayment(_orderData.paymentCustomisation))
+                      _buildSubPaymentCustomisationSection(),
+                    if (_shouldShowSubPayment(_orderData.paymentCustomisation))
+                      const SizedBox(height: AppConstants.defaultPadding),
+                    
+                    // User Details Section
+                    _buildUserDetailsSection(),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    
+                    // User Detail Input Fields
+                    if (_orderData.userDetails)
+                      _buildUserDetailInputFields(),
+                    if (_orderData.userDetails)
+                      const SizedBox(height: AppConstants.defaultPadding),
+                    
+                    // Pay Button
+                    _buildPayButton(context),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    
+                    // Bottom spacer
+                    const SizedBox(height: AppConstants.largePadding),
+                    const SizedBox(height: 30),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Footer
+            _buildFooter(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Header Widget
+  Widget _buildHeader() {
+    return Container(
+      color: AppTheme.primaryColor,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.smallPadding,
+        vertical: 0,
+      ),
+      child: Row(
+        children: [
+          // App Logo
+          Image.asset(
+            'assets/images/headerLogo.png',
+            height: 32,
+            width: 32,
+          ),
+          const SizedBox(width: AppConstants.smallPadding),
+          
+          // App Title
+          const Expanded(
+            child: Text(
+              'by nimbbl.',
+              style: TextStyle(
+                color: AppTheme.secondaryColor,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          
+          // Settings Button
+          IconButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const SettingsScreen(),
+              ),
+            ),
+            icon: const Icon(
+              Icons.settings,
+              color: AppTheme.secondaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Footer Widget
+  Widget _buildFooter() {
+    return Container(
+      color: AppTheme.primaryColor,
+      padding: const EdgeInsets.fromLTRB(
+        AppConstants.defaultPadding + 4, 
+        AppConstants.defaultPadding, 
+        AppConstants.defaultPadding + 4, 
+        AppConstants.defaultPadding
+      ),
+      child: Row(
+        children: [
+          Text(
+            '© ${DateTime.now().year} nimbbl by bigital technologies pvt ltd',
+            style: const TextStyle(
+              color: Colors.white38,
+              fontSize: 12,
+            ),
+            textAlign: TextAlign.left,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Form Widgets
   Widget _buildProductCard() {
     return Container(
       height: 180,
@@ -108,7 +374,7 @@ class OrderFormWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildProductDetails(OrderProvider orderProvider) {
+  Widget _buildProductDetails() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -141,7 +407,7 @@ class OrderFormWidget extends StatelessWidget {
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
-                  value: orderProvider.orderData.currency,
+                  value: _orderData.currency,
                   isExpanded: false,
                   style: AppTheme.inputText.copyWith(fontSize: 12),
                   underline: const SizedBox.shrink(),
@@ -159,7 +425,7 @@ class OrderFormWidget extends StatelessWidget {
                   }).toList(),
                   onChanged: (String? newValue) {
                     if (newValue != null) {
-                      orderProvider.handleCurrencyChange(newValue);
+                      _updateOrderField(currency: newValue);
                     }
                   },
                 ),
@@ -189,8 +455,8 @@ class OrderFormWidget extends StatelessWidget {
                 radius: const Radius.circular(8),
                 child: Center(
                   child: TextFormField(
-                    controller: TextEditingController(text: orderProvider.orderData.amount),
-                    onChanged: orderProvider.handleAmountChange,
+                    controller: _amountController,
+                    onChanged: (value) => _updateOrderField(amount: value),
                     textAlign: TextAlign.center,
                     textAlignVertical: TextAlignVertical.center,
                     style: AppTheme.inputText.copyWith(
@@ -259,7 +525,7 @@ class OrderFormWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderLineItemsSection(OrderProvider orderProvider) {
+  Widget _buildOrderLineItemsSection() {
     return Row(
       children: [
         Expanded(
@@ -269,15 +535,15 @@ class OrderFormWidget extends StatelessWidget {
           ),
         ),
         Switch(
-          value: orderProvider.orderData.orderLineItems,
-          onChanged: orderProvider.handleOrderLineItemsChange,
+          value: _orderData.orderLineItems,
+          onChanged: _handleOrderLineItemsChange,
           activeColor: AppTheme.primaryColor,
         ),
       ],
     );
   }
 
-  Widget _buildHeaderCustomisationSection(OrderProvider orderProvider) {
+  Widget _buildHeaderCustomisationSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -303,14 +569,13 @@ class OrderFormWidget extends StatelessWidget {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: orderProvider.orderData.headerCustomisation,
+              value: _orderData.headerCustomisation,
               isExpanded: true,
               style: AppTheme.inputText,
-              items: _getHeaderCustomisationOptions(orderProvider.orderData.orderLineItems)
+              items: _getHeaderCustomisationOptions(_orderData.orderLineItems)
                   .asMap()
                   .entries
                   .map((entry) {
-                final index = entry.key;
                 final item = entry.value;
                 return DropdownMenuItem<String>(
                   value: item.name,
@@ -334,7 +599,7 @@ class OrderFormWidget extends StatelessWidget {
               }).toList(),
               onChanged: (String? newValue) {
                 if (newValue != null) {
-                  orderProvider.handleHeaderCustomisationChange(newValue);
+                  _updateOrderField(headerCustomisation: newValue);
                 }
               },
             ),
@@ -344,7 +609,7 @@ class OrderFormWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentCustomisationSection(OrderProvider orderProvider) {
+  Widget _buildPaymentCustomisationSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -370,7 +635,7 @@ class OrderFormWidget extends StatelessWidget {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: orderProvider.orderData.paymentCustomisation,
+              value: _orderData.paymentCustomisation,
               isExpanded: true,
               style: AppTheme.inputText,
               items: paymentTypeList.map((IconWithName item) {
@@ -392,7 +657,7 @@ class OrderFormWidget extends StatelessWidget {
               }).toList(),
               onChanged: (String? newValue) {
                 if (newValue != null) {
-                  orderProvider.handlePaymentTypeChange(newValue);
+                  _handlePaymentTypeChange(newValue);
                 }
               },
             ),
@@ -402,7 +667,7 @@ class OrderFormWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSubPaymentCustomisationSection(OrderProvider orderProvider) {
+  Widget _buildSubPaymentCustomisationSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -428,10 +693,10 @@ class OrderFormWidget extends StatelessWidget {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: orderProvider.orderData.subPaymentCustomisation,
+              value: _orderData.subPaymentCustomisation,
               isExpanded: true,
               style: AppTheme.inputText,
-              items: _getSubPaymentItems(orderProvider.orderData.paymentCustomisation)
+              items: _getSubPaymentItems(_orderData.paymentCustomisation)
                   .map((ImageWithName item) {
                 return DropdownMenuItem<String>(
                   value: item.name,
@@ -455,7 +720,7 @@ class OrderFormWidget extends StatelessWidget {
               }).toList(),
               onChanged: (String? newValue) {
                 if (newValue != null) {
-                  orderProvider.handleSubPaymentTypeChange(newValue);
+                  _updateOrderField(subPaymentCustomisation: newValue);
                 }
               },
             ),
@@ -465,7 +730,7 @@ class OrderFormWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildUserDetailsSection(OrderProvider orderProvider) {
+  Widget _buildUserDetailsSection() {
     return Row(
       children: [
         Expanded(
@@ -475,16 +740,16 @@ class OrderFormWidget extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: () => orderProvider.handleUserDetailsToggle(),
+          onTap: () => _updateOrderField(userDetails: !_orderData.userDetails),
           child: Container(
             width: 20,
             height: 20,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black, width: 2),
               borderRadius: BorderRadius.circular(3),
-              color: orderProvider.orderData.userDetails ? Colors.black : Colors.white,
+              color: _orderData.userDetails ? Colors.black : Colors.white,
             ),
-            child: orderProvider.orderData.userDetails
+            child: _orderData.userDetails
                 ? const Center(
                     child: Text(
                       '✓',
@@ -502,14 +767,14 @@ class OrderFormWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildUserDetailInputFields(OrderProvider orderProvider) {
+  Widget _buildUserDetailInputFields() {
     return Column(
       children: [
         // First Name Field
         _buildUserDetailField(
           label: AppStrings.firstName,
-          value: orderProvider.orderData.firstName,
-          onChanged: orderProvider.handleFirstNameChange,
+          value: _orderData.firstName,
+          onChanged: (value) => _updateOrderField(firstName: value),
           hintText: AppStrings.enterFirstName,
         ),
         const SizedBox(height: AppConstants.defaultPadding),
@@ -517,8 +782,8 @@ class OrderFormWidget extends StatelessWidget {
         // Mobile Number Field
         _buildUserDetailField(
           label: AppStrings.mobileNumber,
-          value: orderProvider.orderData.mobileNumber,
-          onChanged: orderProvider.handleMobileNumberChange,
+          value: _orderData.mobileNumber,
+          onChanged: (value) => _updateOrderField(mobileNumber: value),
           hintText: AppStrings.enterMobileNumber,
           keyboardType: TextInputType.phone,
         ),
@@ -527,8 +792,8 @@ class OrderFormWidget extends StatelessWidget {
         // Email Field
         _buildUserDetailField(
           label: AppStrings.email,
-          value: orderProvider.orderData.email,
-          onChanged: orderProvider.handleEmailChange,
+          value: _orderData.email,
+          onChanged: (value) => _updateOrderField(email: value),
           hintText: AppStrings.enterEmail,
           keyboardType: TextInputType.emailAddress,
         ),
@@ -587,7 +852,7 @@ class OrderFormWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildPayButton(BuildContext context, OrderProvider orderProvider) {
+  Widget _buildPayButton(BuildContext context) {
     return Container(
       width: double.infinity,
       height: 50,
@@ -603,14 +868,14 @@ class OrderFormWidget extends StatelessWidget {
         ],
       ),
       child: ElevatedButton(
-        onPressed: orderProvider.isPaymentLoading ? null : () async {
-          await orderProvider.processPayment();
+        onPressed: _isPaymentLoading ? null : () async {
+          await _processPayment();
           // Show error toast if payment failed
-          if (orderProvider.paymentError != null) {
+          if (_paymentError != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  orderProvider.paymentError!,
+                  _paymentError!,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
@@ -637,7 +902,7 @@ class OrderFormWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: orderProvider.isPaymentLoading
+        child: _isPaymentLoading
             ? const SizedBox(
                 width: 20,
                 height: 20,
@@ -654,6 +919,7 @@ class OrderFormWidget extends StatelessWidget {
     );
   }
 
+  // Helper methods
   List<IconWithName> _getHeaderCustomisationOptions(bool orderLineItems) {
     return orderLineItems ? headerCustomTypeEnabledList : headerCustomTypeDisabledList;
   }
@@ -675,7 +941,6 @@ class OrderFormWidget extends StatelessWidget {
     return paymentType == 'netbanking' || paymentType == 'wallet' || paymentType == 'upi';
   }
 
-  /// Get header indicator color based on the option name (matching Android sample app logic)
   Color _getHeaderIndicatorColor(String optionName) {
     switch (optionName) {
       case 'your brand name and brand logo':

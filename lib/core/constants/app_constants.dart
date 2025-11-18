@@ -33,4 +33,8 @@ class AppConstants {
   static const String sampleAppModeKey = 'sample_app_mode';
   static const String shopBaseUrlKey = 'shop_base_url';
   static const String qaEnvironmentUrlKey = 'qa_environment_url';
+  
+  // Firebase Configuration
+  static const bool enableFirebaseCrashlytics = false; // Set to true to enable Firebase Crashlytics
+  static const bool enableFirebaseAnalytics = false; // Set to true to enable Firebase Analytics
 }

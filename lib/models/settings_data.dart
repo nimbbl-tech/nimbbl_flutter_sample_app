@@ -27,46 +27,6 @@ class SettingsData {
     );
   }
 
-  /// Convert SettingsData to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'environment': environment,
-      'qaUrl': qaUrl,
-      'experience': experience,
-      'baseUrl': baseUrl,
-    };
-  }
-
-  /// Create SettingsData from JSON
-  factory SettingsData.fromJson(Map<String, dynamic> json) {
-    return SettingsData(
-      environment: json['environment'] ?? '',
-      qaUrl: json['qaUrl'] ?? '',
-      experience: json['experience'] ?? '',
-      baseUrl: json['baseUrl'] ?? '',
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is SettingsData &&
-        other.environment == environment &&
-        other.qaUrl == qaUrl &&
-        other.experience == experience &&
-        other.baseUrl == baseUrl;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(
-      environment,
-      qaUrl,
-      experience,
-      baseUrl,
-    );
-  }
-
   @override
   String toString() {
     return 'SettingsData(environment: $environment, qaUrl: $qaUrl, experience: $experience, baseUrl: $baseUrl)';

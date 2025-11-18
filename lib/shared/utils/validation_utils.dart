@@ -1,4 +1,4 @@
-import '../../features/order/domain/models/order_data.dart';
+import '../../models/order_data.dart';
 
 /// Validation utilities for form inputs
 class ValidationUtils {
@@ -104,14 +104,4 @@ class ValidationUtils {
     return false;
   }
 
-  /// Validate amount format
-  static bool isValidAmount(String amount) {
-    final amountValue = double.tryParse(amount);
-    return amountValue != null && amountValue > 0;
-  }
-
-  /// Validate currency code
-  static bool isValidCurrency(String currency) {
-    return currency.isNotEmpty && currency.length >= 3;
-  }
 }

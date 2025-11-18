@@ -2,13 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_sdk.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/types.dart';
 
+import '../core/constants/api_constants.dart';
+import '../core/constants/app_constants.dart';
 // SDKConfig is in types.dart, imported above
 
-import '../../../../features/order/domain/models/order_data.dart';
-import '../../../../features/settings/domain/models/settings_data.dart';
-import '../../../../core/constants/api_constants.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../shared/utils/validation_utils.dart';
+import '../models/order_data.dart';
+import '../models/settings_data.dart';
+import '../shared/utils/validation_utils.dart';
 
 /// Simplified Payment Service - Merchant-friendly integration
 class PaymentService {
@@ -18,6 +18,7 @@ class PaymentService {
 
   late NimbblCheckoutSDK _nimbblSDK;
   bool _isInitialized = false;
+  String? _lastInitializedBaseUrl; // Track the last baseUrl used for initialization
 
   /// Initialize the SDK instance
   void _initializeSDKInstance() {
@@ -37,9 +38,9 @@ class PaymentService {
       await _nimbblSDK.initialize(config);
       
       _isInitialized = true;
-      debugPrint('✅ Nimbbl SDK initialized successfully');
+      _lastInitializedBaseUrl = apiBaseUrl; // Store the baseUrl used for initialization
     } catch (e) {
-      debugPrint('❌ SDK initialization failed: $e');
+      debugPrint('SDK initialization failed: $e');
       rethrow;
     }
   }
@@ -58,8 +59,11 @@ class PaymentService {
     SettingsData settingsData,
   ) async {
     try {
-      // Initialize SDK if not already initialized
-      if (!_isInitialized) {
+      // Get the current baseUrl from settings
+      final currentBaseUrl = _getApiBaseUrl(settingsData);
+      
+      // Re-initialize SDK if not initialized or if baseUrl has changed
+      if (!_isInitialized || _lastInitializedBaseUrl != currentBaseUrl) {
         await initialize(settingsData);
       }
 
@@ -135,7 +139,45 @@ class PaymentService {
 
       // Extract order token from response
       final orderResponseData = orderResult['data'] as Map<String, dynamic>?;
-      final orderToken = orderResponseData?['token'] as String?;
+      
+      // Check if the response data itself indicates failure (nested error structure)
+      if (orderResponseData != null && orderResponseData['success'] == false) {
+        final error = orderResponseData['error'];
+        String errorMessage = 'Order creation failed';
+        
+        if (error != null) {
+          final errorString = error.toString();
+          // Handle iOS error format: "The operation couldn't be completed. (Order error error 0.)"
+          if (errorString.contains('Order error')) {
+            errorMessage = 'Order creation failed: $errorString';
+          } else {
+            errorMessage = errorString;
+          }
+        }
+        
+        throw Exception(errorMessage);
+      }
+      
+      // Try to extract token from different possible locations
+      String? orderToken;
+      if (orderResponseData != null) {
+        // Try 'token' first (expected structure)
+        orderToken = orderResponseData['token'] as String?;
+        
+        // If not found, try other possible keys
+        if (orderToken == null || orderToken.isEmpty) {
+          orderToken = orderResponseData['orderToken'] as String?;
+        }
+        if (orderToken == null || orderToken.isEmpty) {
+          orderToken = orderResponseData['order_token'] as String?;
+        }
+      }
+      
+      // If still not found, check if the response itself is the token
+      if ((orderToken == null || orderToken.isEmpty) && orderResult['data'] is String) {
+        orderToken = orderResult['data'] as String?;
+      }
+      
       if (orderToken == null || orderToken.isEmpty) {
         throw Exception('Order token is missing from order creation response');
       }
@@ -156,7 +198,7 @@ class PaymentService {
       return checkoutResult;
 
     } catch (e) {
-      debugPrint('❌ Payment processing failed: $e');
+      debugPrint('Payment processing failed: $e');
       rethrow;
     }
   }

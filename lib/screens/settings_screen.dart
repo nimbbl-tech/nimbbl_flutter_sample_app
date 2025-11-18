@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../../../../core/constants/app_constants.dart';
-import '../../../../core/constants/api_constants.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../shared/constants/app_strings.dart';
-import '../../../../shared/widgets/order_create_data_values.dart';
-import '../providers/settings_provider.dart';
+import '../core/constants/api_constants.dart';
+import '../core/constants/app_constants.dart';
+import '../core/theme/app_theme.dart';
+import '../models/settings_data.dart';
+import '../services/settings_service.dart';
+import '../shared/constants/app_strings.dart';
+import '../shared/constants/order_create_data_values.dart';
 
 /// Settings screen for configuring application settings
 class SettingsScreen extends StatefulWidget {
@@ -18,21 +18,36 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _qaUrlController;
+  final SettingsService _settingsService = SettingsService();
 
   @override
   void initState() {
     super.initState();
-    _qaUrlController = TextEditingController();
+    _qaUrlController = TextEditingController(text: _settingsService.settingsData.qaUrl);
+    
+    // Listen to settings changes
+    _settingsService.onSettingsChanged = () {
+      if (mounted) {
+        setState(() {
+          if (_qaUrlController.text != _settingsService.settingsData.qaUrl) {
+            _qaUrlController.text = _settingsService.settingsData.qaUrl;
+          }
+        });
+      }
+    };
   }
 
   @override
   void dispose() {
+    _settingsService.onSettingsChanged = null;
     _qaUrlController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final settingsData = _settingsService.settingsData;
+    
     return Scaffold(
       backgroundColor: AppTheme.surfaceColor,
       body: SafeArea(
@@ -49,37 +64,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   top: AppConstants.smallPadding,
                   right: AppConstants.defaultPadding,
                 ),
-                child: Consumer<SettingsProvider>(
-                  builder: (context, settingsProvider, child) {
-                    // Update the QA URL controller when settings change
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (_qaUrlController.text != settingsProvider.settingsData.qaUrl) {
-                        _qaUrlController.text = settingsProvider.settingsData.qaUrl;
-                      }
-                    });
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Environment Section
+                    _buildEnvironmentDropdown(settingsData),
+                    const SizedBox(height: AppConstants.defaultPadding),
                     
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Environment Section
-                        _buildEnvironmentDropdown(settingsProvider),
-                        const SizedBox(height: AppConstants.defaultPadding),
-                        
-                        // QA URL Input (only show when QA is selected)
-                        if (settingsProvider.settingsData.environment == AppConstants.environmentQA) ...[
-                          _buildQaUrlInput(settingsProvider),
-                          const SizedBox(height: AppConstants.defaultPadding),
-                        ],
-                        
-                        // Experience Section
-                        _buildExperienceDropdown(settingsProvider),
-                        const SizedBox(height: AppConstants.largePadding),
-                        
-        // Done Button
-        _buildDoneButton(),
-                      ],
-                    );
-                  },
+                    // QA URL Input (only show when QA is selected)
+                    if (settingsData.environment == AppConstants.environmentQA) ...[
+                      _buildQaUrlInput(settingsData),
+                      const SizedBox(height: AppConstants.defaultPadding),
+                    ],
+                    
+                    // Experience Section
+                    _buildExperienceDropdown(settingsData),
+                    const SizedBox(height: AppConstants.largePadding),
+                    
+                    // Done Button
+                    _buildDoneButton(),
+                  ],
                 ),
               ),
             ),
@@ -123,7 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildEnvironmentDropdown(SettingsProvider settingsProvider) {
+  Widget _buildEnvironmentDropdown(SettingsData settingsData) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,7 +153,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: settingsProvider.settingsData.environment,
+              value: settingsData.environment,
               isExpanded: true,
               style: AppTheme.inputText,
               items: environmentOptions.map((String value) {
@@ -160,12 +164,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }).toList(),
               onChanged: (String? newValue) {
                 if (newValue != null) {
-                  settingsProvider.updateField(environment: newValue);
+                  _settingsService.updateField(environment: newValue);
                   
                   // Set default QA URL when QA is selected (like Android app)
                   if (newValue == AppConstants.environmentQA) {
                     _qaUrlController.text = ApiConstants.defaultQaUrl;
-                    settingsProvider.updateField(qaUrl: ApiConstants.defaultQaUrl);
+                    _settingsService.updateField(qaUrl: ApiConstants.defaultQaUrl);
                   }
                 }
               },
@@ -176,7 +180,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildQaUrlInput(SettingsProvider settingsProvider) {
+  Widget _buildQaUrlInput(SettingsData settingsData) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -202,7 +206,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: TextFormField(
             controller: _qaUrlController,
             onChanged: (value) {
-              settingsProvider.updateField(qaUrl: value);
+              _settingsService.updateField(qaUrl: value);
             },
             textAlignVertical: TextAlignVertical.center,
             style: AppTheme.inputText,
@@ -218,7 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildExperienceDropdown(SettingsProvider settingsProvider) {
+  Widget _buildExperienceDropdown(SettingsData settingsData) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -244,7 +248,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: settingsProvider.settingsData.experience,
+              value: settingsData.experience,
               isExpanded: true,
               style: AppTheme.inputText,
               items: experienceOptions.map((String value) {
@@ -255,7 +259,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }).toList(),
               onChanged: (String? newValue) {
                 if (newValue != null) {
-                  settingsProvider.updateField(experience: newValue);
+                  _settingsService.updateField(experience: newValue);
                 }
               },
             ),
@@ -264,7 +268,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ],
     );
   }
-
 
   Widget _buildDoneButton() {
     return Container(
@@ -304,10 +307,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _handleDonePress() async {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    // If QA environment is selected, ensure the QA URL from the text controller is saved
+    if (_settingsService.settingsData.environment == AppConstants.environmentQA) {
+      final qaUrlFromController = _qaUrlController.text.trim();
+      if (qaUrlFromController.isNotEmpty && qaUrlFromController != _settingsService.settingsData.qaUrl) {
+        // Update the QA URL if it's different from what's in settings
+        await _settingsService.updateField(qaUrl: qaUrlFromController);
+      }
+    }
     
     // Clear cache and reload with current settings
-    await settingsProvider.clearCacheAndReload();
+    await _settingsService.clearCacheAndReload();
     
     // Show success message
     if (mounted) {

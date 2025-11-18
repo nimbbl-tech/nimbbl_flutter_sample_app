@@ -4,6 +4,18 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+// Conditionally apply Firebase plugins only if google-services.json exists
+// This allows the app to build without Firebase configuration
+// If you delete google-services.json, the Firebase plugins won't be applied
+def googleServicesFile = file('google-services.json')
+if (googleServicesFile.exists()) {
+    apply plugin: 'com.google.gms.google-services'
+    apply plugin: 'com.google.firebase.crashlytics'
+} else {
+    println('google-services.json not found. Firebase plugins will not be applied.')
+    println('App will build and run without Firebase services.')
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {

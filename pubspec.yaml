@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+11
+version: 1.0.0+18
 
 environment:
   sdk: '>=3.3.4 <4.0.0'
@@ -38,7 +38,6 @@ dependencies:
   email_validator: ^3.0.0
   gap: ^3.0.1
   google_fonts: ^6.2.1
-  provider: ^6.1.2
   shared_preferences: ^2.5.2
   talker_dio_logger: ^4.6.11
   url_launcher: ^6.3.1
@@ -54,6 +53,9 @@ dependencies:
 
   # Published version (commented out for local development)
   nimbbl_mobile_kit_flutter_webview_sdk: ^1.1.0
+  firebase_crashlytics: ^5.0.4
+  firebase_analytics: ^12.0.4
+  firebase_core: ^4.2.1
 
 
   #nimbbl_mobile_kit_flutter_native_ui_sdk:
