@@ -63,11 +63,41 @@ class MyApp extends StatelessWidget {
           try {
             final uri = Uri.base;
             final path = uri.path.toLowerCase();
+            
+            // Check if path is /Response
             if (path == '/response' || path.startsWith('/response')) {
               return MaterialPageRoute(
                 builder: (context) => _ResponsePage(),
                 settings: settings,
               );
+            }
+            
+            // Handle GitHub Pages SPA routing format: ?//Response&response=...
+            // The 404.html script converts /Response?response=... to ?//Response&response=...
+            final queryString = uri.query;
+            if (queryString.isNotEmpty) {
+              // Check if query string contains SPA route format (starts with //)
+              if (queryString.startsWith('//')) {
+                // Extract route from query string (format: //Response&response=...)
+                final parts = queryString.split('&');
+                if (parts.isNotEmpty) {
+                  final routePart = parts[0].replaceAll('//', '').toLowerCase();
+                  if (routePart == 'response' || routePart.startsWith('response')) {
+                    return MaterialPageRoute(
+                      builder: (context) => _ResponsePage(),
+                      settings: settings,
+                    );
+                  }
+                }
+              }
+              
+              // Also check if response parameter exists (could be direct query param)
+              if (uri.queryParameters.containsKey('response')) {
+                return MaterialPageRoute(
+                  builder: (context) => _ResponsePage(),
+                  settings: settings,
+                );
+              }
             }
           } catch (e) {
             // Silently handle URL path check errors
