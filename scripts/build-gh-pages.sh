@@ -98,6 +98,11 @@ while IFS= read -r line; do
     # Comment out the path line
     echo "  #   path: /path/to/local/sdk" >> "$TEMP_PUBSPEC"
     IN_SDK_SECTION=0
+  # Check if this is an active published version line (has version number)
+  elif [[ "$line" =~ ^[[:space:]]*nimbbl_mobile_kit_flutter_webview_sdk:[[:space:]]*[\^]?[0-9] ]]; then
+    # Update with new version
+    echo "  nimbbl_mobile_kit_flutter_webview_sdk: $SDK_VERSION" >> "$TEMP_PUBSPEC"
+    SDK_UPDATED=1
   # Check if this is the commented published version line
   elif [[ "$line" =~ ^[[:space:]]*#[[:space:]]*nimbbl_mobile_kit_flutter_webview_sdk: ]]; then
     # Uncomment and update with new version
