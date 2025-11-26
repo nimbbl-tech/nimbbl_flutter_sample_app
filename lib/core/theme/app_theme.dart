@@ -111,7 +111,6 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: surfaceColor,
-        background: backgroundColor,
         error: errorColor,
       ),
       textTheme: const TextTheme(
@@ -172,7 +171,7 @@ class AppTheme {
         ),
       ),
       scaffoldBackgroundColor: backgroundColor,
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: surfaceColor,
         elevation: 2,
         shape: RoundedRectangleBorder(

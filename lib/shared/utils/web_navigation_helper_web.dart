@@ -12,7 +12,7 @@ void navigateToRootWeb() {
   // For /nimbbl_flutter_sample_app/some-page -> /nimbbl_flutter_sample_app/
   // For / -> /
   String basePath = '/';
-  if (pathname.isNotEmpty && pathname != '/') {
+  if (pathname != null && pathname.isNotEmpty && pathname != '/') {
     // Split pathname and get first non-empty segment (the repository name)
     final segments = pathname.split('/').where((s) => s.isNotEmpty).toList();
     if (segments.isNotEmpty) {

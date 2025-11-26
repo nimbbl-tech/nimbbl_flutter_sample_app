@@ -186,7 +186,7 @@ class _ResponsePageState extends State<_ResponsePage> {
           }
         });
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       _isDecoding = false;
     }
   }
