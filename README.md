@@ -129,7 +129,7 @@ Ready to explore? Let's get started! 🚀
 ## Dependencies
 
 ### Core Dependencies
-- `nimbbl_mobile_kit_flutter_webview_sdk`: Nimbbl Flutter WebView SDK (v1.1.0)
+- `nimbbl_mobile_kit_flutter_webview_sdk`: Nimbbl Flutter WebView SDK (v1.1.1-alpha.2)
 - `dio`: HTTP client for API calls
 - `url_launcher`: External URL handling
 
