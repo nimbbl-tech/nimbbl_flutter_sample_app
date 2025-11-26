@@ -11,6 +11,7 @@ import 'services/settings_service.dart';
 
 // Conditional import for web URL access
 import 'shared/utils/web_url_helper.dart' if (dart.library.html) 'shared/utils/web_url_helper_web.dart' show getResponseParamFromUrl;
+import 'shared/utils/web_navigation_helper.dart' show navigateToRoot;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -160,10 +161,16 @@ class _ResponsePageState extends State<_ResponsePage> {
             Future.delayed(const Duration(seconds: 5), () {
               if (mounted) {
                 // Navigate to home (matching React: window.open('/', '_self'))
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const ResponsiveLayout()),
-                  (route) => false,
-                );
+                if (kIsWeb) {
+                  // On web, use URL navigation to ensure base path is correct
+                  navigateToRoot();
+                } else {
+                  // On mobile, use Flutter navigation
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const ResponsiveLayout()),
+                    (route) => false,
+                  );
+                }
               }
             });
           }
@@ -200,7 +207,10 @@ class _ResponsePageState extends State<_ResponsePage> {
         canPop: false,
         onPopInvoked: (didPop) {
           if (!didPop && kIsWeb) {
-            // Navigate to home instead of going back
+            // Navigate to home instead of going back - use URL navigation for web
+            navigateToRoot();
+          } else if (!didPop && !kIsWeb) {
+            // On mobile, use Flutter navigation
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const ResponsiveLayout()),
               (route) => false,
@@ -217,7 +227,10 @@ class _ResponsePageState extends State<_ResponsePage> {
       canPop: false,
       onPopInvoked: (didPop) {
         if (!didPop && kIsWeb) {
-          // Navigate to home instead of going back
+          // Navigate to home instead of going back - use URL navigation for web
+          navigateToRoot();
+        } else if (!didPop && !kIsWeb) {
+          // On mobile, use Flutter navigation
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const ResponsiveLayout()),
             (route) => false,
