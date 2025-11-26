@@ -3,12 +3,12 @@ import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_sdk.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/types.dart';
 
 import '../core/constants/api_constants.dart';
-import '../core/constants/app_constants.dart';
 // SDKConfig is in types.dart, imported above
 
 import '../models/order_data.dart';
 import '../models/settings_data.dart';
 import '../shared/utils/validation_utils.dart';
+import 'order_creation_service.dart';
 
 /// Simplified Payment Service - Merchant-friendly integration
 class PaymentService {
@@ -40,7 +40,6 @@ class PaymentService {
       _isInitialized = true;
       _lastInitializedBaseUrl = apiBaseUrl; // Store the baseUrl used for initialization
     } catch (e) {
-      debugPrint('SDK initialization failed: $e');
       rethrow;
     }
   }
@@ -73,114 +72,14 @@ class PaymentService {
         throw Exception(validation['errorMessage']);
       }
 
-      // Extract order parameters
-      final currency = orderData.currency;
-      final amount = orderData.amount.toString();
-      final productId = _getProductIdForHeader(orderData.headerCustomisation);
-      final orderLineItems = orderData.orderLineItems;
-      final checkoutExperience = AppConstants.defaultCheckoutExperience;
+      // Create order using OrderCreationService for all platforms
+      // Note: In production, this should be done server-to-server (S2S) by your backend
+      final orderCreationService = OrderCreationService();
+      final orderToken = await orderCreationService.createOrder(orderData, settingsData);
+
+      // Extract payment mode for checkout options
       final paymentMode = _getPaymentModeCode(orderData.paymentCustomisation);
-      final subPaymentMode = _getSubPaymentModeCode(orderData.subPaymentCustomisation);
 
-      // Build user object (always include, empty if no user details)
-      Map<String, dynamic> user = {};
-      if (orderData.userDetails) {
-        final trimmedName = orderData.firstName.trim();
-        final trimmedNumber = orderData.mobileNumber.trim();
-        final trimmedEmail = orderData.email.trim();
-
-        if (trimmedName.isNotEmpty || trimmedNumber.isNotEmpty || trimmedEmail.isNotEmpty) {
-          user = {
-            'email': trimmedEmail,
-            'name': trimmedName,
-            'mobile_number': trimmedNumber
-          };
-        }
-      }
-
-      // Create order using Nimbbl SDK
-      final orderParams = CreateOrderParams(
-        currency: currency,
-        amount: amount,
-        productId: productId,
-        orderLineItems: orderLineItems,
-        checkoutExperience: checkoutExperience,
-        paymentMode: paymentMode,
-        subPaymentMode: subPaymentMode,
-        user: user,
-      );
-
-      final orderResult = await _nimbblSDK.createShopOrder(orderParams);
-
-      // Handle order creation result
-      if (orderResult['success'] == false) {
-        final error = orderResult['error'];
-        String errorMessage = 'Failed to create order';
-        
-        if (error != null) {
-          final errorString = error.toString();
-          if (errorString.contains('PlatformException')) {
-            final match = RegExp(r'PlatformException\([^,]+,\s*([^,]+)').firstMatch(errorString);
-            if (match != null && match.group(1) != null) {
-              String rawMessage = match.group(1)!.trim();
-              if (rawMessage.contains('okhttp3.ResponseBody')) {
-                errorMessage = 'Order creation failed';
-              } else {
-                errorMessage = rawMessage;
-              }
-            }
-          } else {
-            errorMessage = errorString;
-          }
-        }
-        
-        throw Exception(errorMessage);
-      }
-
-      // Extract order token from response
-      final orderResponseData = orderResult['data'] as Map<String, dynamic>?;
-      
-      // Check if the response data itself indicates failure (nested error structure)
-      if (orderResponseData != null && orderResponseData['success'] == false) {
-        final error = orderResponseData['error'];
-        String errorMessage = 'Order creation failed';
-        
-        if (error != null) {
-          final errorString = error.toString();
-          // Handle iOS error format: "The operation couldn't be completed. (Order error error 0.)"
-          if (errorString.contains('Order error')) {
-            errorMessage = 'Order creation failed: $errorString';
-          } else {
-            errorMessage = errorString;
-          }
-        }
-        
-        throw Exception(errorMessage);
-      }
-      
-      // Try to extract token from different possible locations
-      String? orderToken;
-      if (orderResponseData != null) {
-        // Try 'token' first (expected structure)
-        orderToken = orderResponseData['token'] as String?;
-        
-        // If not found, try other possible keys
-        if (orderToken == null || orderToken.isEmpty) {
-          orderToken = orderResponseData['orderToken'] as String?;
-        }
-        if (orderToken == null || orderToken.isEmpty) {
-          orderToken = orderResponseData['order_token'] as String?;
-        }
-      }
-      
-      // If still not found, check if the response itself is the token
-      if ((orderToken == null || orderToken.isEmpty) && orderResult['data'] is String) {
-        orderToken = orderResult['data'] as String?;
-      }
-      
-      if (orderToken == null || orderToken.isEmpty) {
-        throw Exception('Order token is missing from order creation response');
-      }
       
       // Create checkout options
       final checkoutOptions = CheckoutOptions(
@@ -189,6 +88,7 @@ class PaymentService {
         bankCode: _getBankCode(orderData.subPaymentCustomisation),
         walletCode: _getWalletCode(orderData.subPaymentCustomisation),
         paymentFlow: _getPaymentFlow(orderData.subPaymentCustomisation, paymentMode),
+        checkoutExperience: orderData.checkoutExperience, // Pass checkout experience
       );
 
       // Process payment using checkout method
@@ -198,22 +98,7 @@ class PaymentService {
       return checkoutResult;
 
     } catch (e) {
-      debugPrint('Payment processing failed: $e');
       rethrow;
-    }
-  }
-
-  /// Get product ID based on header customization
-  String _getProductIdForHeader(String headerCustomisation) {
-    switch (headerCustomisation) {
-      case 'your brand name and brand logo':
-        return '11';
-      case 'your brand logo':
-        return '12';
-      case 'your brand name':
-        return '13';
-      default:
-        return '11';
     }
   }
 
@@ -231,11 +116,6 @@ class PaymentService {
       default:
         return '';
     }
-  }
-
-  /// Get sub payment mode code
-  String _getSubPaymentModeCode(String subPaymentCustomisation) {
-    return subPaymentCustomisation;
   }
 
   /// Get bank code

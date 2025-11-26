@@ -16,6 +16,9 @@ class SettingsService {
     qaUrl: ApiConstants.defaultQaUrl,
     experience: AppConstants.defaultExperience,
     baseUrl: ApiConstants.defaultEnvironment,
+    useAccessCredentials: false,
+    accessKey: null,
+    accessSecret: null,
   );
 
   SettingsData get settingsData => _settingsData;
@@ -49,17 +52,24 @@ class SettingsService {
       
       // Load experience
       final savedExperience = prefs.getString(AppConstants.sampleAppModeKey) ?? AppConstants.defaultExperience;
+      
+      // Load access credentials (only for QA environment)
+      final useAccessCredentials = prefs.getBool(AppConstants.useAccessCredentialsKey) ?? false;
+      final accessKey = prefs.getString(AppConstants.accessKeyKey);
+      final accessSecret = prefs.getString(AppConstants.accessSecretKey);
 
       _settingsData = SettingsData(
         environment: selectedEnvironment,
         qaUrl: qaUrl,
         experience: savedExperience,
         baseUrl: savedBaseUrl,
+        useAccessCredentials: useAccessCredentials,
+        accessKey: accessKey,
+        accessSecret: accessSecret,
       );
 
       onSettingsChanged?.call();
     } catch (error) {
-      debugPrint('SettingsService: Error loading settings: $error');
     }
   }
 
@@ -85,12 +95,24 @@ class SettingsService {
       await prefs.setString(AppConstants.qaEnvironmentUrlKey, updates.qaUrl);
       await prefs.setString(AppConstants.sampleAppModeKey, updates.experience);
       
+      // Save access credentials (only for QA environment)
+      await prefs.setBool(AppConstants.useAccessCredentialsKey, updates.useAccessCredentials);
+      if (updates.accessKey != null && updates.accessKey!.isNotEmpty) {
+        await prefs.setString(AppConstants.accessKeyKey, updates.accessKey!);
+      } else {
+        await prefs.remove(AppConstants.accessKeyKey);
+      }
+      if (updates.accessSecret != null && updates.accessSecret!.isNotEmpty) {
+        await prefs.setString(AppConstants.accessSecretKey, updates.accessSecret!);
+      } else {
+        await prefs.remove(AppConstants.accessSecretKey);
+      }
+      
       // Update the baseUrl in settings data
       _settingsData = _settingsData.copyWith(baseUrl: baseUrl);
       onSettingsChanged?.call();
       
     } catch (error) {
-      debugPrint('SettingsService: Error saving settings: $error');
     }
   }
 
@@ -99,11 +121,17 @@ class SettingsService {
     String? environment,
     String? qaUrl,
     String? experience,
+    bool? useAccessCredentials,
+    String? accessKey,
+    String? accessSecret,
   }) async {
     final updatedSettings = _settingsData.copyWith(
       environment: environment,
       qaUrl: qaUrl,
       experience: experience,
+      useAccessCredentials: useAccessCredentials,
+      accessKey: accessKey,
+      accessSecret: accessSecret,
     );
 
     await updateSettingsData(updatedSettings);
@@ -147,6 +175,19 @@ class SettingsService {
       await prefs.setString(AppConstants.qaEnvironmentUrlKey, currentQaUrl);
       await prefs.setString(AppConstants.sampleAppModeKey, _settingsData.experience);
       
+      // Save access credentials
+      await prefs.setBool(AppConstants.useAccessCredentialsKey, _settingsData.useAccessCredentials);
+      if (_settingsData.accessKey != null && _settingsData.accessKey!.isNotEmpty) {
+        await prefs.setString(AppConstants.accessKeyKey, _settingsData.accessKey!);
+      } else {
+        await prefs.remove(AppConstants.accessKeyKey);
+      }
+      if (_settingsData.accessSecret != null && _settingsData.accessSecret!.isNotEmpty) {
+        await prefs.setString(AppConstants.accessSecretKey, _settingsData.accessSecret!);
+      } else {
+        await prefs.remove(AppConstants.accessSecretKey);
+      }
+      
       // Update the baseUrl in current settings data WITHOUT reloading
       // This ensures the current environment is preserved
       _settingsData = SettingsData(
@@ -154,13 +195,15 @@ class SettingsService {
         qaUrl: currentQaUrl, // Use the latest QA URL
         experience: _settingsData.experience, // Preserve current experience
         baseUrl: baseUrl, // Update with calculated baseUrl
+        useAccessCredentials: _settingsData.useAccessCredentials, // Preserve access credentials toggle
+        accessKey: _settingsData.accessKey, // Preserve access key
+        accessSecret: _settingsData.accessSecret, // Preserve access secret
       );
       
       // Notify listeners so UI and other services get the updated settings
       onSettingsChanged?.call();
       
     } catch (error) {
-      debugPrint('SettingsService: Error in clearCacheAndReload: $error');
     }
   }
 }

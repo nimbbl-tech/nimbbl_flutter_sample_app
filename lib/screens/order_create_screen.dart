@@ -1,270 +1,197 @@
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_constants.dart';
 import '../core/theme/app_theme.dart';
-import '../models/order_data.dart';
-import '../services/payment_service.dart';
-import '../services/settings_service.dart';
 import '../shared/constants/app_strings.dart';
 import '../shared/constants/order_create_data_values.dart';
+import '../shared/utils/navigation_utils.dart';
+import '../viewmodels/order_create_viewmodel.dart';
+
+import '../shared/widgets/currency_amount_input.dart';
+import '../shared/widgets/header_customisation_dropdown.dart';
+import '../shared/widgets/payment_customisation_dropdown.dart';
+import '../shared/widgets/sub_payment_customisation_dropdown.dart';
+import '../shared/widgets/toggle_option.dart';
+import '../shared/widgets/info_message.dart';
+import '../shared/widgets/user_detail_field.dart';
 import 'order_success_screen.dart';
 import 'settings_screen.dart';
 
 /// Main order creation screen
 class OrderCreateScreen extends StatefulWidget {
-  const OrderCreateScreen({super.key});
+  const OrderCreateScreen({Key? key}) : super(key: key);
 
   @override
   State<OrderCreateScreen> createState() => _OrderCreateScreenState();
 }
 
 class _OrderCreateScreenState extends State<OrderCreateScreen> {
-  final PaymentService _paymentService = PaymentService();
-  final SettingsService _settingsService = SettingsService();
-  late TextEditingController _amountController;
-
-  // Order Data
-  OrderData _orderData = OrderData(
-    amount: AppConstants.defaultAmount,
-    currency: AppConstants.defaultCurrency,
-    orderLineItems: true,
-    headerCustomisation: headerCustomTypeEnabledList.first.name,
-    paymentCustomisation: AppConstants.defaultPaymentMode,
-    subPaymentCustomisation: AppConstants.defaultSubPaymentMode,
-    userDetails: false,
-    firstName: '',
-    mobileNumber: '',
-    email: '',
-  );
-
-  // Payment State
-  bool _isPaymentLoading = false;
-  String? _paymentError;
-  Map<String, dynamic>? _checkoutResult;
+  late OrderCreateViewModel _viewModel;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeOrderData();
-    _amountController = TextEditingController(text: _orderData.amount);
+    _viewModel = OrderCreateViewModel();
+    _initializeViewModel();
+  }
+
+  Future<void> _initializeViewModel() async {
+    await _viewModel.initialize(
+      defaultCheckoutExperience: AppStrings.checkoutExperienceRedirect, // Mobile SDK always uses redirect
+    );
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
   }
 
   @override
   void dispose() {
-    _amountController.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
 
-  void _initializeOrderData() {
-    final headerOptions = _orderData.orderLineItems ? headerCustomTypeEnabledList : headerCustomTypeDisabledList;
-    final defaultHeaderCustomisation = headerOptions.isNotEmpty ? headerOptions.first.name : '';
-    
-    setState(() {
-      _orderData = _orderData.copyWith(
-        headerCustomisation: defaultHeaderCustomisation,
-      );
-    });
-  }
-
-  void _handleCheckoutResult() {
-    if (_checkoutResult != null) {
-      final checkoutResult = _checkoutResult;
+  Future<void> _handleCheckoutResult() async {
+    final checkoutResult = _viewModel.checkoutResult;
+    if (checkoutResult != null) {
       // Clear the checkout result immediately to prevent duplicate navigation
-      setState(() {
-        _checkoutResult = null;
-      });
+      _viewModel.clearCheckoutResult();
       
-      // Navigate to success screen (handles both success and failure cases)
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => OrderSuccessScreen(
-            paymentData: checkoutResult!,
-          ),
-        ),
-      ).then((_) {
-        // Reset state when returning from success screen
-        // This allows for new payments to be processed
-      });
-    }
-  }
-
-  void _updateOrderField({
-    String? amount,
-    String? currency,
-    bool? orderLineItems,
-    String? headerCustomisation,
-    String? paymentCustomisation,
-    String? subPaymentCustomisation,
-    bool? userDetails,
-    String? firstName,
-    String? mobileNumber,
-    String? email,
-  }) {
-    setState(() {
-      _orderData = _orderData.copyWith(
-        amount: amount,
-        currency: currency,
-        orderLineItems: orderLineItems,
-        headerCustomisation: headerCustomisation,
-        paymentCustomisation: paymentCustomisation,
-        subPaymentCustomisation: subPaymentCustomisation,
-        userDetails: userDetails,
-        firstName: firstName,
-        mobileNumber: mobileNumber,
-        email: email,
+      // Navigate to success screen using platform-aware navigation
+      await NavigationUtils.navigateTo(
+        context,
+        OrderSuccessScreen(paymentData: checkoutResult),
       );
-      if (amount != null && _amountController.text != amount) {
-        _amountController.text = amount;
-      }
-    });
-  }
-
-  void _handlePaymentTypeChange(String paymentType) {
-    String defaultSubPayment = '';
-    if (paymentType == 'netbanking') {
-      defaultSubPayment = 'all banks';
-    } else if (paymentType == 'wallet') {
-      defaultSubPayment = 'all wallets';
-    } else if (paymentType == 'upi') {
-      defaultSubPayment = 'collect + intent';
     }
-
-    _updateOrderField(
-      paymentCustomisation: paymentType,
-      subPaymentCustomisation: defaultSubPayment,
-    );
-  }
-
-  void _handleOrderLineItemsChange(bool value) {
-    final newOptions = value ? headerCustomTypeEnabledList : headerCustomTypeDisabledList;
-    final newHeaderCustomisation = newOptions.isNotEmpty ? newOptions.first.name : '';
-    _updateOrderField(
-      orderLineItems: value,
-      headerCustomisation: newHeaderCustomisation,
-    );
   }
 
   Future<void> _processPayment() async {
-    if (_isPaymentLoading) return;
-
-    debugPrint('Starting payment process...');
-    setState(() {
-      _isPaymentLoading = true;
-      _paymentError = null;
-    });
-
-    try {
-      debugPrint('Order data: ${_orderData.toString()}');
-      debugPrint('Settings data: ${_settingsService.settingsData.toString()}');
-      
-      final checkoutResult = await _paymentService.processPayment(
-        _orderData,
-        _settingsService.settingsData,
-      );
-
-      debugPrint('Payment service result: $checkoutResult');
-
-      // Only navigate to result screen if there was an actual payment attempt
-      if (checkoutResult.containsKey('success') && checkoutResult['success'] == false) {
-        // This is an order creation failure - don't navigate to result screen
-        setState(() {
-          _paymentError = checkoutResult['errorMessage'] ?? 'Failed to create order';
-          _isPaymentLoading = false;
-        });
-        debugPrint('Order creation failed: $_paymentError');
-      } else {
-        // This is an actual payment result - navigate to result screen
-        setState(() {
-          _checkoutResult = checkoutResult;
-          _isPaymentLoading = false;
-        });
-        _handleCheckoutResult();
-      }
-    } catch (error) {
-      setState(() {
-        _paymentError = 'An unexpected error occurred during payment';
-        _isPaymentLoading = false;
-      });
-      debugPrint('Payment Error: $error');
+    final checkoutResult = await _viewModel.processPayment();
+    if (checkoutResult != null && mounted) {
+      await _handleCheckoutResult();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(),
-            
-            // Scrollable Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Product Image Card
-                    _buildProductCard(),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    
-                    // Product Details (Title, Currency, Amount in one row)
-                    _buildProductDetails(),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    
-                    // Transaction Info Section
-                    _buildTransactionInfoSection(),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    
-                    // Order Line Items Section
-                    _buildOrderLineItemsSection(),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    
-                    // Header Customisation Section
-                    _buildHeaderCustomisationSection(),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    
-                    // Payment Customisation Section
-                    _buildPaymentCustomisationSection(),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    
-                    // Sub Payment Customisation Section
-                    if (_shouldShowSubPayment(_orderData.paymentCustomisation))
-                      _buildSubPaymentCustomisationSection(),
-                    if (_shouldShowSubPayment(_orderData.paymentCustomisation))
-                      const SizedBox(height: AppConstants.defaultPadding),
-                    
-                    // User Details Section
-                    _buildUserDetailsSection(),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    
-                    // User Detail Input Fields
-                    if (_orderData.userDetails)
-                      _buildUserDetailInputFields(),
-                    if (_orderData.userDetails)
-                      const SizedBox(height: AppConstants.defaultPadding),
-                    
-                    // Pay Button
-                    _buildPayButton(context),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    
-                    // Bottom spacer
-                    const SizedBox(height: AppConstants.largePadding),
-                    const SizedBox(height: 30),
-                  ],
+    if (!_isInitialized) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _viewModel,
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: Colors.white, // White background to match web and React app
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Header
+                _buildHeader(),
+                
+                // Scrollable Content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Product Image Card
+                        _buildProductCard(),
+                        const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // Product Details (Title, Currency, Amount in one row)
+                        _buildProductDetails(),
+                        const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // Transaction Info Section
+                        InfoMessage(
+                          message: AppStrings.infoRealTransaction,
+                          maxLines: 2,
+                          padding: const EdgeInsets.symmetric(vertical: 4), // Less spacing for mobile
+                        ),
+                        const SizedBox(height: 4), // Less spacing between messages for mobile
+                        InfoMessage(
+                          message: AppStrings.infoEmiAmount,
+                          maxLines: 2,
+                          padding: const EdgeInsets.symmetric(vertical: 4), // Less spacing for mobile
+                        ),
+                        const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // Order Line Items Section
+                        _buildOrderLineItemsSection(),
+                        const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // View Mode Selector - Hidden for mobile (not applicable for mobile SDK)
+                        // Note: View mode is only relevant for web UI
+                        
+                        // Enable Address & COD Section (matching web UI)
+                        _buildAddressCodSection(),
+                        const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // Header Customisation Section
+                        _buildHeaderCustomisationSection(),
+                        const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // Payment Customisation Section
+                        _buildPaymentCustomisationSection(),
+                        const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // Sub Payment Customisation Section
+                        if (_viewModel.shouldShowSubPayment(_viewModel.orderData.paymentCustomisation))
+                          _buildSubPaymentCustomisationSection(),
+                        if (_viewModel.shouldShowSubPayment(_viewModel.orderData.paymentCustomisation))
+                          const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // Checkout Experience Section - Hidden for mobile (always redirect)
+                        // Note: Mobile SDK always uses redirect mode, so this section is not shown
+                        
+                        // User Details Section
+                        _buildUserDetailsSection(),
+                        const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // User Detail Input Fields
+                        if (_viewModel.userDetails)
+                          _buildUserDetailInputFields(),
+                        if (_viewModel.userDetails)
+                          const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // Pay Button
+                        _buildPayButton(context),
+                        const SizedBox(height: AppConstants.defaultPadding),
+                        
+                        // Error Message
+                        if (_viewModel.paymentError != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: AppConstants.defaultPadding),
+                            child: Text(
+                              _viewModel.paymentError!,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        
+                        // Bottom spacer
+                        const SizedBox(height: AppConstants.largePadding),
+                        const SizedBox(height: 30),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                
+                // Footer
+                _buildFooter(),
+              ],
             ),
-            
-            // Footer
-            _buildFooter(),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -278,22 +205,31 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       ),
       child: Row(
         children: [
-          // App Logo
+          // App Logo - Using SonicLogo to match React
+          // Matching React: <img src={SonicLogo} alt='' className='' />
+          // React uses natural size, no explicit height/width
           Image.asset(
-            'assets/images/headerLogo.png',
-            height: 32,
-            width: 32,
+            'assets/images/SonicLogo.png',
+            // No explicit height/width to match React's natural size behavior
+            // Image will use its natural aspect ratio (134x49)
+            fit: BoxFit.contain,
           ),
           const SizedBox(width: AppConstants.smallPadding),
           
           // App Title
+          // Matching React: <span className='font-black text-white text-nowrap'>by nimbbl.</span>
+          // React: font-black (w900), text-white, text-nowrap, text-sm (12px on mobile)
           const Expanded(
             child: Text(
-              'by nimbbl.',
+              AppStrings.byNimbbl,
               style: TextStyle(
-                color: AppTheme.secondaryColor,
-                fontSize: 12,
+                fontFamily: 'Gordita',
+                fontSize: 12, // Matching React: text-sm (12px on mobile)
+                fontWeight: FontWeight.w900, // Matching React: font-black (heaviest weight)
+                color: Colors.white, // Matching React: text-white
               ),
+              maxLines: 1, // Matching React: text-nowrap
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           
@@ -341,34 +277,18 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
 
   // Form Widgets
   Widget _buildProductCard() {
+    // Matching React: <img src={PaperPlane} className='mb-6 h-max rounded-lg' width='100%' />
+    // h-max = natural height (no fixed height), rounded-lg = 12px, width='100%' = full width
     return Container(
-      height: 180,
-      margin: const EdgeInsets.only(top: 16,),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F0F0),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            offset: const Offset(0, 8),
-            blurRadius: 20,
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
+      margin: const EdgeInsets.only(top: 16, bottom: 24), // mb-6 = 24px bottom margin
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12), // rounded-lg (12px) - matching React
         child: Image.asset(
           'assets/images/PaperPlane.png',
-          width: double.infinity,
-          height: double.infinity,
-          fit: BoxFit.cover,
+          width: double.infinity, // width='100%' - matching React
+          // h-max means height: max-content (natural height, not stretched)
+          // No height specified to allow natural aspect ratio
+          fit: BoxFit.contain, // Maintain aspect ratio like React's h-max
         ),
       ),
     );
@@ -379,391 +299,293 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         // Product Title
-        const Text(
-          'paper plane.',
-          style: AppTheme.headingSmall,
+        // Matching React: text-[20px] lg:text-4xl md:text-4xl tracking-tighter text-nowrap font-[Gordita-bold]
+        Text(
+          AppStrings.paperPlane, // Using paperPlane (with capital P) to match React
+          style: const TextStyle(
+            fontFamily: 'Gordita',
+            fontSize: 20, // Matching React: text-[20px] (20px on mobile)
+            fontWeight: FontWeight.w700, // Matching React: font-[Gordita-bold]
+            color: Colors.black,
+            letterSpacing: -0.05, // Matching React: tracking-tighter (tighter letter spacing)
+          ),
+          maxLines: 1, // Matching React: text-nowrap
+          overflow: TextOverflow.ellipsis,
         ),
         
-        // Currency and Amount Container
-        Row(
-          children: [
-            // Currency Dropdown
-            Container(
-              width: 55,
-              height: 32,
-              margin: const EdgeInsets.only(right: 5),
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                color: AppTheme.inputBackgroundColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.borderColor, width: 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    offset: const Offset(0, 2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _orderData.currency,
-                  isExpanded: false,
-                  style: AppTheme.inputText.copyWith(fontSize: 12),
-                  underline: const SizedBox.shrink(),
-                  icon: const Icon(Icons.arrow_drop_down, size: 16),
-                  items: currencyOptions.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        value,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      _updateOrderField(currency: newValue);
-                    }
-                  },
-                ),
-              ),
-            ),
-            
-            // Amount Field
-            Container(
-              width: 50,
-              height: 32,
-              decoration: BoxDecoration(
-                color: AppTheme.inputBackgroundColor,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    offset: const Offset(0, 2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: DottedBorder(
-                color: AppTheme.borderColor,
-                strokeWidth: 1,
-                dashPattern: const [5, 5],
-                borderType: BorderType.RRect,
-                radius: const Radius.circular(8),
-                child: Center(
-                  child: TextFormField(
-                    controller: _amountController,
-                    onChanged: (value) => _updateOrderField(amount: value),
-                    textAlign: TextAlign.center,
-                    textAlignVertical: TextAlignVertical.center,
-                    style: AppTheme.inputText.copyWith(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      contentPadding: EdgeInsets.all(0),
-                      isDense: true,
-                      hintText: AppStrings.enterAmount,
-                      hintStyle: AppTheme.hintText,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTransactionInfoSection() {
-    return Row(
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: const BoxDecoration(
-            color: Colors.black,
-            shape: BoxShape.circle,
-          ),
-          child: const Center(
-            child: Text(
-              'i',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                height: 1.0,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            'this is a real transaction, any amount deducted will refunded within 7 working days',
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-              fontStyle: FontStyle.italic,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 2,
-          ),
+        // Currency and Amount Input - using shared widget
+        CurrencyAmountInput(
+          currency: _viewModel.selectedCurrency,
+          amount: _viewModel.amountController.text,
+          amountController: _viewModel.amountController,
+          onCurrencyChanged: (value) {
+            _viewModel.handleCurrencyChange(value);
+          },
+          onAmountChanged: (value) {
+            _viewModel.updateOrderField(amount: value);
+          },
         ),
       ],
     );
   }
 
   Widget _buildOrderLineItemsSection() {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            AppStrings.orderLineItems,
-            style: AppTheme.labelMedium,
-          ),
-        ),
-        Switch(
-          value: _orderData.orderLineItems,
-          onChanged: _handleOrderLineItemsChange,
-          activeColor: AppTheme.primaryColor,
-        ),
-      ],
+    return ToggleOption(
+      label: AppStrings.orderLineItems,
+      value: _viewModel.orderLineItems,
+      disabled: _viewModel.enableAddressCod, // Matching web UI: disabled when Address & COD is enabled
+      onChanged: (value) {
+        _viewModel.handleOrderLineItemsChange(value);
+      },
     );
   }
 
+  Widget _buildAddressCodSection() {
+    return ToggleOption(
+      label: AppStrings.enableAddressCod,
+      value: _viewModel.enableAddressCod,
+      onChanged: (value) {
+        _viewModel.toggleAddressCod(value);
+      },
+    );
+  }
+
+
   Widget _buildHeaderCustomisationSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          AppStrings.headerCustomisation,
-          style: AppTheme.labelMedium,
-        ),
-        const SizedBox(height: AppConstants.smallPadding),
-        Container(
-          height: AppConstants.inputFieldHeight,
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
-          decoration: BoxDecoration(
-            color: AppTheme.inputBackgroundColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderColor, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _orderData.headerCustomisation,
-              isExpanded: true,
-              style: AppTheme.inputText,
-              items: _getHeaderCustomisationOptions(_orderData.orderLineItems)
-                  .asMap()
-                  .entries
-                  .map((entry) {
-                final item = entry.value;
-                return DropdownMenuItem<String>(
-                  value: item.name,
-                  child: Row(
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 16,
-                        color: _getHeaderIndicatorColor(item.name),
-                      ),
-                      const SizedBox(width: AppConstants.smallPadding),
-                      Expanded(
-                        child: Text(
-                          item.name,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  _updateOrderField(headerCustomisation: newValue);
-                }
-              },
+    // If addressCodEnabled, show merchant dropdown (MustBuy, BallMart, TripKart)
+    if (_viewModel.enableAddressCod) {
+      final options = headerCustomTypeAddressCodList;
+      final currentValue = _viewModel.orderData.headerCustomisation;
+      final isValid = options.any((option) => option.name == currentValue);
+      final validValue = isValid ? currentValue : AppStrings.mustBuy;
+      
+      if (!isValid && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _viewModel.updateHeaderCustomisation(AppStrings.mustBuy);
+          }
+        });
+      }
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.headerCustomisation,
+            style: TextStyle(
+              fontFamily: 'Gordita',
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black.withOpacity(0.8),
+              letterSpacing: -0.05,
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          Container(
+            height: AppConstants.inputFieldHeight,
+            padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
+            decoration: BoxDecoration(
+              color: AppTheme.inputBackgroundColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0x1A000000), width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  offset: const Offset(0, 2),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: validValue,
+                isExpanded: true,
+                style: const TextStyle(
+                  fontFamily: 'Gordita',
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
+                  letterSpacing: -0.05,
+                ),
+                items: options.map((option) {
+                  return DropdownMenuItem<String>(
+                    value: option.name,
+                    child: Row(
+                      children: [
+                        Icon(
+                          option.icon,
+                          size: 18,
+                          color: _viewModel.getHeaderIndicatorColor(option.name),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            option.name,
+                            style: const TextStyle(
+                              fontFamily: 'Gordita',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                              letterSpacing: -0.05,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    _viewModel.updateHeaderCustomisation(newValue);
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // If orderLineItems is false, show disabled state with "your brand name" (matching web UI)
+    if (!_viewModel.orderLineItems) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.headerCustomisation,
+            style: TextStyle(
+              fontFamily: 'Gordita',
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black.withOpacity(0.8),
+              letterSpacing: -0.05,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(maxHeight: 38),
+            decoration: BoxDecoration(
+              color: AppTheme.inputBackgroundColor,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: const Color(0xFFE5E7EB),
+                width: 0.4,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.fiber_manual_record,
+                  size: 18,
+                  color: _viewModel.getHeaderIndicatorColor(AppStrings.brandName),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  AppStrings.brandName,
+                  style: const TextStyle(
+                    fontFamily: 'Gordita',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.05,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // If render_desktop_ui is true and orderLineItems is true, show disabled state (matching web UI)
+    if (_viewModel.renderDesktopUi && _viewModel.orderLineItems) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.headerCustomisation,
+            style: TextStyle(
+              fontFamily: 'Gordita',
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black.withOpacity(0.8),
+              letterSpacing: -0.05,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(maxHeight: 38),
+            decoration: BoxDecoration(
+              color: AppTheme.inputBackgroundColor,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: const Color(0xFFE5E7EB),
+                width: 0.4,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.fiber_manual_record,
+                  size: 18,
+                  color: const Color(0xFFFB381D), // Pink/Red color for desktop UI
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  AppStrings.brandName,
+                  style: const TextStyle(
+                    fontFamily: 'Gordita',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.05,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Default: orderLineItems is true and render_desktop_ui is false
+    return HeaderCustomisationDropdown(
+      value: _viewModel.orderData.headerCustomisation,
+      orderLineItems: _viewModel.orderData.orderLineItems,
+      onChanged: (value) {
+        _viewModel.updateHeaderCustomisation(value);
+      },
     );
   }
 
   Widget _buildPaymentCustomisationSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          AppStrings.paymentCustomisation,
-          style: AppTheme.labelMedium,
-        ),
-        const SizedBox(height: AppConstants.smallPadding),
-        Container(
-          height: AppConstants.inputFieldHeight,
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
-          decoration: BoxDecoration(
-            color: AppTheme.inputBackgroundColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderColor, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _orderData.paymentCustomisation,
-              isExpanded: true,
-              style: AppTheme.inputText,
-              items: paymentTypeList.map((IconWithName item) {
-                return DropdownMenuItem<String>(
-                  value: item.name,
-                  child: Row(
-                    children: [
-                      Icon(item.icon, size: 16),
-                      const SizedBox(width: AppConstants.smallPadding),
-                      Expanded(
-                        child: Text(
-                          item.name,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  _handlePaymentTypeChange(newValue);
-                }
-              },
-            ),
-          ),
-        ),
-      ],
+    return PaymentCustomisationDropdown(
+      value: _viewModel.orderData.paymentCustomisation,
+      isDisabled: _viewModel.enableAddressCod || _viewModel.selectedCurrency != 'INR', // Matching web UI
+      onChanged: (value) {
+        _viewModel.handlePaymentTypeChange(value);
+      },
     );
   }
 
   Widget _buildSubPaymentCustomisationSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          AppStrings.subPaymentCustomisation,
-          style: AppTheme.labelMedium,
-        ),
-        const SizedBox(height: AppConstants.smallPadding),
-        Container(
-          height: AppConstants.inputFieldHeight,
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
-          decoration: BoxDecoration(
-            color: AppTheme.inputBackgroundColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderColor, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _orderData.subPaymentCustomisation,
-              isExpanded: true,
-              style: AppTheme.inputText,
-              items: _getSubPaymentItems(_orderData.paymentCustomisation)
-                  .map((ImageWithName item) {
-                return DropdownMenuItem<String>(
-                  value: item.name,
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        item.image,
-                        width: 16,
-                        height: 16,
-                      ),
-                      const SizedBox(width: AppConstants.smallPadding),
-                      Expanded(
-                        child: Text(
-                          item.name,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  _updateOrderField(subPaymentCustomisation: newValue);
-                }
-              },
-            ),
-          ),
-        ),
-      ],
+    return SubPaymentCustomisationDropdown(
+      paymentType: _viewModel.orderData.paymentCustomisation,
+      value: _viewModel.orderData.subPaymentCustomisation,
+      onChanged: (value) {
+        _viewModel.updateSubPaymentCustomisation(value);
+      },
     );
   }
 
   Widget _buildUserDetailsSection() {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            AppStrings.userDetails,
-            style: AppTheme.labelMedium,
-          ),
-        ),
-        GestureDetector(
-          onTap: () => _updateOrderField(userDetails: !_orderData.userDetails),
-          child: Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 2),
-              borderRadius: BorderRadius.circular(3),
-              color: _orderData.userDetails ? Colors.black : Colors.white,
-            ),
-            child: _orderData.userDetails
-                ? const Center(
-                    child: Text(
-                      '✓',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  )
-                : null,
-          ),
-        ),
-      ],
+    return ToggleOption(
+      label: AppStrings.userDetailsQuestion,
+      value: _viewModel.userDetails,
+      onChanged: (value) {
+        _viewModel.toggleUserDetails(value);
+      },
     );
   }
 
@@ -771,91 +593,48 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
     return Column(
       children: [
         // First Name Field
-        _buildUserDetailField(
+        UserDetailField(
           label: AppStrings.firstName,
-          value: _orderData.firstName,
-          onChanged: (value) => _updateOrderField(firstName: value),
+          controller: _viewModel.firstNameController,
+          onChanged: (value) {
+            _viewModel.updateFirstName(value);
+          },
           hintText: AppStrings.enterFirstName,
         ),
         const SizedBox(height: AppConstants.defaultPadding),
         
         // Mobile Number Field
-        _buildUserDetailField(
+        UserDetailField(
           label: AppStrings.mobileNumber,
-          value: _orderData.mobileNumber,
-          onChanged: (value) => _updateOrderField(mobileNumber: value),
+          controller: _viewModel.mobileController,
+          onChanged: (value) {
+            _viewModel.validateMobileNumber(value);
+          },
           hintText: AppStrings.enterMobileNumber,
           keyboardType: TextInputType.phone,
+          errorText: _viewModel.numberError,
         ),
         const SizedBox(height: AppConstants.defaultPadding),
         
         // Email Field
-        _buildUserDetailField(
+        UserDetailField(
           label: AppStrings.email,
-          value: _orderData.email,
-          onChanged: (value) => _updateOrderField(email: value),
+          controller: _viewModel.emailController,
+          onChanged: (value) {
+            _viewModel.validateEmail(value);
+          },
           hintText: AppStrings.enterEmail,
           keyboardType: TextInputType.emailAddress,
+          errorText: _viewModel.emailError,
         ),
       ],
     );
   }
 
-  Widget _buildUserDetailField({
-    required String label,
-    required String value,
-    required Function(String) onChanged,
-    required String hintText,
-    TextInputType? keyboardType,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTheme.labelMedium,
-        ),
-        const SizedBox(height: AppConstants.smallPadding),
-        Container(
-          height: AppConstants.inputFieldHeight,
-          decoration: BoxDecoration(
-            color: AppTheme.inputBackgroundColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderColor, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: TextFormField(
-            initialValue: value,
-            onChanged: onChanged,
-            textAlignVertical: TextAlignVertical.center,
-            keyboardType: keyboardType,
-            style: AppTheme.inputText,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.defaultPadding,
-                vertical: AppConstants.smallPadding,
-              ),
-              isDense: true,
-              hintText: hintText,
-              hintStyle: AppTheme.hintText,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildPayButton(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 50,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
@@ -867,15 +646,17 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
           ),
         ],
       ),
-      child: ElevatedButton(
-        onPressed: _isPaymentLoading ? null : () async {
+        child: ElevatedButton(
+        onPressed: !_viewModel.isPayButtonEnabled()
+            ? null 
+            : () async {
           await _processPayment();
           // Show error toast if payment failed
-          if (_paymentError != null) {
+          if (mounted && _viewModel.paymentError != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  _paymentError!,
+                  _viewModel.paymentError!,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
@@ -895,21 +676,42 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryColor,
-          foregroundColor: Colors.white,
+          backgroundColor: _viewModel.isPaymentLoading || !_viewModel.isPayButtonEnabled()
+              ? Colors.grey[400] // Matching React: bg-gray-400 when disabled/loading
+              : AppTheme.primaryColor, // Matching React: bg-black when enabled
+          foregroundColor: Colors.white, // Matching React: text-white
+          padding: const EdgeInsets.all(12), // Matching React: p-3 (12px)
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10), // Matching React: rounded-[10px]
           ),
         ),
-        child: _isPaymentLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.secondaryColor),
-                ),
+        child: _viewModel.isPaymentLoading
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Matching React: w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.secondaryColor),
+                    ),
+                  ),
+                  const SizedBox(width: 8), // Matching React: gap-2 (8px)
+                  const Text(
+                    'Processing...', // Matching React: "Processing..."
+                    style: TextStyle(
+                      fontFamily: 'Gordita',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500, // Matching React: font-[Gordita-medium]
+                      color: AppTheme.secondaryColor,
+                      letterSpacing: -0.05,
+                    ),
+                  ),
+                ],
               )
             : const Text(
                 AppStrings.payNow,
@@ -919,38 +721,4 @@ class _OrderCreateScreenState extends State<OrderCreateScreen> {
     );
   }
 
-  // Helper methods
-  List<IconWithName> _getHeaderCustomisationOptions(bool orderLineItems) {
-    return orderLineItems ? headerCustomTypeEnabledList : headerCustomTypeDisabledList;
-  }
-
-  List<ImageWithName> _getSubPaymentItems(String paymentType) {
-    switch (paymentType) {
-      case 'netbanking':
-        return netBankingSubPaymentTypeList;
-      case 'wallet':
-        return walletSubPaymentTypeList;
-      case 'upi':
-        return upiSubPaymentTypeList;
-      default:
-        return [];
-    }
-  }
-
-  bool _shouldShowSubPayment(String paymentType) {
-    return paymentType == 'netbanking' || paymentType == 'wallet' || paymentType == 'upi';
-  }
-
-  Color _getHeaderIndicatorColor(String optionName) {
-    switch (optionName) {
-      case 'your brand name and brand logo':
-        return const Color(0xFF022860); // Dark Blue
-      case 'your brand logo':
-        return const Color(0xFF3E6F96); // Light Blue
-      case 'your brand name':
-        return const Color(0xFFFB381D); // Red
-      default:
-        return const Color(0xFF022860); // Default to Dark Blue
-    }
-  }
 }

@@ -19,72 +19,92 @@ class AppTheme {
   static const Color borderColor = Color(0xFFC7C7CC);
   static const Color inputBackgroundColor = Color(0xFFFFFFFF);
 
-  // Text Styles
+  // Text Styles - Using Gordita font (matching React implementation)
   static const TextStyle headingLarge = TextStyle(
+    fontFamily: 'Gordita',
     fontSize: 24,
     fontWeight: FontWeight.bold,
     color: textPrimaryColor,
+    letterSpacing: -0.05,
   );
 
   static const TextStyle headingMedium = TextStyle(
+    fontFamily: 'Gordita',
     fontSize: 20,
     fontWeight: FontWeight.bold,
     color: textPrimaryColor,
+    letterSpacing: -0.05,
   );
 
   static const TextStyle headingSmall = TextStyle(
+    fontFamily: 'Gordita',
     fontSize: 18,
     fontWeight: FontWeight.w700,
     color: textPrimaryColor,
-    letterSpacing: -0.5,
+    letterSpacing: -0.05,
   );
 
   static const TextStyle bodyLarge = TextStyle(
+    fontFamily: 'Gordita',
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: textPrimaryColor,
+    letterSpacing: -0.05,
   );
 
   static const TextStyle bodyMedium = TextStyle(
+    fontFamily: 'Gordita',
     fontSize: 14,
     fontWeight: FontWeight.normal,
     color: textPrimaryColor,
+    letterSpacing: -0.05,
   );
 
   static const TextStyle bodySmall = TextStyle(
+    fontFamily: 'Gordita',
     fontSize: 12,
     fontWeight: FontWeight.w500,
     color: textPrimaryColor,
+    letterSpacing: -0.05,
   );
 
   static const TextStyle labelMedium = TextStyle(
+    fontFamily: 'Gordita',
     fontSize: 12,
     fontWeight: FontWeight.w500,
     color: textSecondaryColor,
+    letterSpacing: -0.05,
   );
 
   static const TextStyle buttonText = TextStyle(
+    fontFamily: 'Gordita',
     fontSize: 16,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.w500, // Using medium weight (matching React font-[Gordita-medium])
     color: secondaryColor,
+    letterSpacing: -0.05,
   );
 
   static const TextStyle inputText = TextStyle(
+    fontFamily: 'Gordita',
     fontSize: 16,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.normal, // Matching Material-UI TextField default (normal weight)
     color: textPrimaryColor,
+    letterSpacing: -0.05,
   );
 
   static const TextStyle hintText = TextStyle(
+    fontFamily: 'Gordita',
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: textHintColor,
+    letterSpacing: -0.05,
   );
 
   // Theme Data
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Gordita', // Set default font family (matching React)
       colorScheme: ColorScheme.fromSeed(
         seedColor: accentColor,
         brightness: Brightness.light,

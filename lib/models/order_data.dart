@@ -10,6 +10,9 @@ class OrderData {
   final String firstName;
   final String mobileNumber;
   final String email;
+  final String? checkoutExperience;
+  final bool? renderDesktopUi; // For web: determines product_id (PRODUCT_LIST[3] vs PRODUCT_LIST[0])
+  final bool? addressCodEnabled; // For web: when true, uses product IDs 4, 5, 6 (PRODUCT_LIST[4-6])
 
   const OrderData({
     required this.amount,
@@ -22,6 +25,9 @@ class OrderData {
     required this.firstName,
     required this.mobileNumber,
     required this.email,
+    this.checkoutExperience,
+    this.renderDesktopUi,
+    this.addressCodEnabled,
   });
 
   /// Create a copy of this OrderData with the given fields replaced with new values
@@ -36,6 +42,9 @@ class OrderData {
     String? firstName,
     String? mobileNumber,
     String? email,
+    String? checkoutExperience,
+    bool? renderDesktopUi,
+    bool? addressCodEnabled,
   }) {
     return OrderData(
       amount: amount ?? this.amount,
@@ -48,6 +57,9 @@ class OrderData {
       firstName: firstName ?? this.firstName,
       mobileNumber: mobileNumber ?? this.mobileNumber,
       email: email ?? this.email,
+      checkoutExperience: checkoutExperience ?? this.checkoutExperience,
+      renderDesktopUi: renderDesktopUi ?? this.renderDesktopUi,
+      addressCodEnabled: addressCodEnabled ?? this.addressCodEnabled,
     );
   }
 

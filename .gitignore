@@ -52,3 +52,24 @@ app.*.map.json
 
 # Firebase config backup folder (contains sensitive credentials)
 /firebase_config_backup/
+
+# Build artifacts
+/android/app/build/
+/android/build/
+/ios/build/
+/ios/.symlinks/
+/ios/.flutter-plugins
+/ios/.flutter-plugins-dependencies
+
+# Release APKs (keep folder, ignore files)
+/releases/*.apk
+/releases/*.aab
+
+# IDE files
+*.iml
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_constants.dart';
+import 'app_strings.dart';
 
 /// Helper classes for dropdown items with icons and images
 class IconWithName {
@@ -25,27 +26,45 @@ class ImageWithName {
 
 
 /// Default values for header customisation
-const String selectedHeaderEnabled = 'your brand name and brand logo';
-const String selectedHeaderDisable = 'your brand name';
+const String selectedHeaderEnabled = AppStrings.brandNameAndLogo;
+const String selectedHeaderDisable = AppStrings.brandName;
 
 /// Payment type list with icons
+/// Matching React icons:
+/// - 'all payments modes': GrAppsRounded → Icons.apps (grid/apps icon)
+/// - 'netbanking': RiBankLine → Icons.account_balance (bank icon)
+/// - 'wallet': TbWallet → Icons.account_balance_wallet (wallet icon)
+/// - 'card': TbCreditCard → Icons.credit_card (credit card icon)
+/// - 'upi': UpiIcon (custom SVG) → Icons.qr_code (UPI QR code icon)
+/// - 'emi': MdCreditCard → Icons.credit_card (credit card icon, but EMI is not in main list)
 const List<IconWithName> paymentTypeList = [
-  IconWithName(icon: Icons.payment, name: AppConstants.defaultPaymentMode),
-  IconWithName(icon: Icons.account_balance, name: 'netbanking'),
-  IconWithName(icon: Icons.account_balance_wallet, name: 'wallet'),
-  IconWithName(icon: Icons.credit_card, name: 'card'),
-  IconWithName(icon: Icons.phone_android, name: 'upi'),
+  IconWithName(icon: Icons.apps, name: AppConstants.defaultPaymentMode), // GrAppsRounded → grid/apps icon
+  IconWithName(icon: Icons.account_balance, name: 'netbanking'), // RiBankLine → bank icon
+  IconWithName(icon: Icons.account_balance_wallet, name: 'wallet'), // TbWallet → wallet icon
+  IconWithName(icon: Icons.credit_card, name: 'card'), // TbCreditCard → credit card icon
+  IconWithName(icon: Icons.qr_code, name: 'upi'), // UpiIcon (custom SVG) → UPI QR code icon
 ];
 
 /// Header customisation options when order line items are enabled
 const List<IconWithName> headerCustomTypeEnabledList = [
-  IconWithName(icon: Icons.fiber_manual_record, name: 'your brand name and brand logo'),
-  IconWithName(icon: Icons.fiber_manual_record, name: 'your brand logo'),
+  IconWithName(icon: Icons.fiber_manual_record, name: AppStrings.brandNameAndLogo),
+  IconWithName(icon: Icons.fiber_manual_record, name: AppStrings.brandLogo),
 ];
 
 /// Header customisation options when order line items are disabled
 const List<IconWithName> headerCustomTypeDisabledList = [
-  IconWithName(icon: Icons.fiber_manual_record, name: 'your brand name'),
+  IconWithName(icon: Icons.fiber_manual_record, name: AppStrings.brandName),
+];
+
+/// Header customisation options when Address & COD is enabled
+/// Should show: MustBuy, BallMart, TripKart (PRODUCT_LIST[5], PRODUCT_LIST[6], PRODUCT_LIST[7])
+/// - PRODUCT_LIST[5]: value '5', label 'MustBuy'
+/// - PRODUCT_LIST[6]: value '6', label 'BallMart'
+/// - PRODUCT_LIST[7]: value '7', label 'TripKart'
+const List<IconWithName> headerCustomTypeAddressCodList = [
+  IconWithName(icon: Icons.fiber_manual_record, name: AppStrings.mustBuy), // value '5'
+  IconWithName(icon: Icons.fiber_manual_record, name: AppStrings.ballMart), // value '6'
+  IconWithName(icon: Icons.fiber_manual_record, name: AppStrings.tripKart), // value '7'
 ];
 
 /// Netbanking sub-payment types with images

@@ -1,200 +1,192 @@
-# Nimbbl Flutter SDK - Merchant Integration Guide
+# Nimbbl Flutter Sample App
 
-**🎉 Production Ready SDK - Simple Integration!**
+**🎉 Complete Sample Application Demonstrating Nimbbl Payment Integration!**
 
-## 🚀 Release Announcement
+## Overview
 
-We are pleased to announce the release of **Nimbbl Flutter SDK v1.1.0**. This major update brings:
+This is a comprehensive Flutter sample application that demonstrates how to integrate the **Nimbbl Flutter WebView SDK** for payment processing. The app showcases:
 
-- ✅ **Simplified Integration**: Get started with just 3 lines of code
-- ✅ **Enhanced Error Handling**: Better debugging and error management
-- ✅ **Improved Performance**: Faster initialization and payment processing
+- ✅ **Multi-Platform Support**: Android, iOS, and **Web** platforms
+- ✅ **Complete Payment Flow**: Order creation, checkout, and payment processing
+- ✅ **UI Customization**: Header customization, payment mode selection, checkout experience options
+- ✅ **Responsive Design**: Optimized UI for both mobile and web platforms
+- ✅ **Real-World Examples**: Production-ready code patterns and best practices
 
-**What's New:**
-- Streamlined API for easier integration
-- Comprehensive documentation with real-world examples
-- Optimized for Flutter 3.x compatibility
-- **App Code Support**: Enhanced SDK identification
-- **Latest Native SDKs**: Updated to Android v4.0.9 and iOS ~> 2.0.16
-- **Semantic Versioning**: Implemented proper semantic versioning for better dependency management
+## 🚀 Features
 
-Ready to integrate? Let's get started! 🚀
+### Payment Integration
+- Order creation with customizable options
+- Multiple payment modes (All, Netbanking, UPI, Wallet, Card, EMI)
+- Sub-payment mode selection
+- Checkout experience options (Redirect, Pop-up)
+- User details prefill support
 
-## Quick Start (3 Lines of Code)
+### Platform Support
+- **Android**: Full native Android WebView integration
+- **iOS**: Full native iOS WebView integration
+- **Web**: Native web support with browser-based payment flow
 
-### 1. Add Dependency
+### Customization Options
+- Header customization (Brand name, logo, or both)
+- Payment mode filtering
+- View mode selector (Mobile/Desktop) for web
+- Address & COD enablement
+- Order line items toggle
 
-```yaml
-dependencies:
-  nimbbl_mobile_kit_flutter_webview_sdk: ^1.1.0
+Ready to explore? Let's get started! 🚀
+
+## Getting Started
+
+### Prerequisites
+
+- Flutter SDK 3.3.0 or higher
+- Dart SDK 2.12.0 or higher
+- Android Studio / Xcode (for mobile development)
+- Modern web browser (for web platform)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/nimbbl-tech/nimbbl_flutter_sample_app.git
+   cd nimbbl_flutter_sample_app
+   ```
+
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Run the app**
+   ```bash
+   # For Android
+   flutter run -d android
+   
+   # For iOS
+   flutter run -d ios
+   
+   # For Web
+   flutter run -d chrome
+   ```
+
+## App Structure
+
+### Screens
+
+- **Order Create Screen** (`lib/screens/order_create_screen.dart`)
+  - Mobile-optimized payment interface
+  - Product visualization
+  - Payment configuration options
+
+- **Web Order Create Screen** (`lib/screens/web_order_create_screen.dart`)
+  - Web-optimized payment interface
+  - Split-panel layout (product preview + configuration)
+  - View mode selector (Mobile/Desktop)
+
+- **Order Success Screen** (`lib/screens/order_success_screen.dart`)
+  - Payment result display
+  - Transaction details
+
+### Key Components
+
+- **View Mode Selector**: Toggle between mobile and desktop view modes (web only)
+- **Currency Amount Input**: Currency dropdown with amount input
+- **Header Customisation Dropdown**: Select header style
+- **Payment Customisation Dropdown**: Select payment modes
+- **Checkout Experience Selector**: Choose redirect or popup experience
+- **Toggle Options**: Various configuration toggles
+
+## Usage
+
+### Basic Payment Flow
+
+1. **Create Order**
+   - Enter amount and select currency
+   - Configure payment options
+   - Customize header and payment modes
+   - Click "Pay Now" to process payment
+
+2. **Handle Payment Result**
+   - Success: Redirects to success screen with transaction details
+   - Failed: Shows error message
+   - Cancelled: Returns to order screen
+
+## Platform-Specific Notes
+
+### Web Platform
+- Automatically detects web platform
+- Uses browser navigation for payment flow
+- Supports both redirect and popup checkout experiences
+- View mode selector available for desktop screens (≥1024px)
+- Callback URLs automatically handled
+
+### Mobile Platforms
+- Native WebView integration
+- Full support for all payment methods
+- Optimized UI for mobile screens
+- Portrait orientation lock (mobile only)
+
+## Dependencies
+
+### Core Dependencies
+- `nimbbl_mobile_kit_flutter_webview_sdk`: Nimbbl Flutter WebView SDK (v1.1.0)
+- `dio`: HTTP client for API calls
+- `url_launcher`: External URL handling
+
+### UI Dependencies
+- `flutter_svg`: SVG image support
+- `dropdown_button2`: Enhanced dropdown widgets
+- `dotted_border`: Dotted border styling
+- `google_fonts`: Font management
+
+### Optional Dependencies
+- `firebase_core`, `firebase_crashlytics`, `firebase_analytics`: Firebase integration (disabled by default)
+
+## Project Structure
+
 ```
-
-### 2. Initialize SDK
-
-```dart
-await NimbblCheckoutSDK.instance.initialize();
-```
-
-### 3. Process Payment
-
-```dart
-final result = await NimbblCheckoutSDK.instance.checkout(
-  CheckoutOptions(orderToken: "your_order_token_from_backend")
-);
-
-// Handle payment result
-if (result['status'] == 'success') {
-  print('Payment successful!');
-  print('Order ID: ${result['order_id']}');
-  print('Transaction ID: ${result['transaction_id']}');
-} else if (result['status'] == 'failed') {
-  print('Payment failed: ${result['message']}');
-} else if (result['status'] == 'cancelled') {
-  print('Payment cancelled by user');
-}
-```
-
-## Complete Integration Example
-
-Here's a complete Flutter widget implementation showing how to integrate the Nimbbl SDK:
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_sdk.dart';
-import 'package:nimbbl_mobile_kit_flutter_webview_sdk/types.dart';
-
-class PaymentScreen extends StatefulWidget {
-  @override
-  _PaymentScreenState createState() => _PaymentScreenState();
-}
-
-class _PaymentScreenState extends State<PaymentScreen> {
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeSDK();
-  }
-
-  // Step 1: Initialize SDK
-  Future<void> _initializeSDK() async {
-    await NimbblCheckoutSDK.instance.initialize();
-  }
-
-  // Step 2: Process Payment
-  Future<void> _processPayment() async {
-    setState(() => _isLoading = true);
-
-    try {
-      final options = CheckoutOptions(
-        orderToken: "your_order_token_from_backend",
-      );
-
-      final result = await NimbblCheckoutSDK.instance.checkout(options);
-
-      // Handle payment result
-      if (result['status'] == 'success') {
-        print('Payment successful!');
-        print('Order ID: ${result['order_id']}');
-        print('Transaction ID: ${result['transaction_id']}');
-      } else if (result['status'] == 'failed') {
-        print('Payment failed: ${result['message']}');
-      } else if (result['status'] == 'cancelled') {
-        print('Payment cancelled by user');
-      }
-    } catch (e) {
-      print('Error: $e');
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: ElevatedButton(
-          onPressed: _isLoading ? null : _processPayment,
-          child: _isLoading ? CircularProgressIndicator() : Text('Pay Now'),
-        ),
-      ),
-    );
-  }
-}
-```
-
-## Advanced Configuration
-
-### Error Handling Best Practices
-
-```dart
-try {
-  final result = await NimbblCheckoutSDK.instance.checkout(options);
-  
-  switch (result['status']) {
-    case 'success':
-      // Payment successful
-      print('Order ID: ${result['order_id']}');
-      print('Transaction ID: ${result['transaction_id']}');
-      print('Amount: ${result['amount']}');
-      print('Currency: ${result['currency']}');
-      break;
-    case 'failed':
-      // Payment failed
-      print('Error: ${result['message']}');
-      print('Reason: ${result['reason']}');
-      break;
-    case 'cancelled':
-      // User cancelled payment
-      print('Payment cancelled by user');
-      break;
-    default:
-      print('Unknown status: ${result['status']}');
-  }
-} catch (e) {
-  // Handle SDK errors
-  print('SDK Error: $e');
-}
+lib/
+├── core/
+│   ├── constants/        # App constants and configuration
+│   ├── services/         # Core services
+│   └── theme/            # App theme and styling
+├── models/               # Data models
+├── screens/              # App screens
+│   ├── order_create_screen.dart      # Mobile order creation
+│   ├── web_order_create_screen.dart  # Web order creation
+│   └── order_success_screen.dart     # Payment success
+├── services/             # Business logic services
+│   └── order_creation_service.dart   # Order creation API
+├── shared/
+│   ├── constants/        # Shared constants
+│   ├── utils/            # Utility functions
+│   └── widgets/          # Reusable widgets
+└── viewmodels/          # View models for state management
 ```
 
 ## Platform-Specific Setup
 
-### Android Setup
+### Android
+- Minimum SDK: 21
+- Target SDK: 34
+- Compile SDK: 34
 
-Add to your `android/app/build.gradle`:
+### iOS
+- Minimum iOS: 13.0
+- Swift-based implementation
 
-```gradle
-android {
-    compileSdkVersion 34
-    
-    defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 34
-    }
-}
-```
-
-### iOS Setup
-
-Add to your `ios/Podfile`:
-
-```ruby
-platform :ios, '13.0'
-```
+### Web
+- Flutter 3.3.0 or higher
+- Modern browser support
+- HTTPS recommended for production
 
 ## Support
 
-- 📚 **Documentation**: [Flutter SDK Docs](https://nimbbl.biz/docs/standard-checkout/setting-client/flutter/)
+- 📚 **SDK Documentation**: [Nimbbl Flutter SDK Docs](https://pub.dev/documentation/nimbbl_mobile_kit_flutter_webview_sdk/latest/)
 - 🐛 **Issues**: [GitHub Issues](https://github.com/nimbbl-tech/nimbbl_flutter_sample_app/issues)
 - 💬 **Support**: [support@nimbbl.biz](mailto:support@nimbbl.biz)
+- 🌐 **Website**: [nimbbl.biz](https://nimbbl.biz/)
 
-## Changelog
+## License
 
-### v1.1.0 (Latest)
-- ✅ **Semantic Versioning**: Implemented proper semantic versioning for better dependency management
-- ✅ **Enhanced iOS Integration**: Improved Flutter plugin configuration for iOS WebView SDK compatibility
-- ✅ **Module Resolution**: Fixed iOS module import issues with proper podspec configuration
-- ✅ **Updated Native SDKs**: Android v4.0.9, iOS ~> 2.0.16
-- ✅ **iOS Build Issues**: Enhanced Flutter plugin configuration for better iOS WebView SDK integration
+This sample app is provided as-is for demonstration purposes.
