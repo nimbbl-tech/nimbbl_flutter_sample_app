@@ -1,6 +1,41 @@
 // Web-specific implementation
 import 'dart:html' as html;
 
+/// Clean up the URL to show a cleaner format
+/// Converts ?//Response&response=... to /Response?response=...
+void cleanupResponseUrl() {
+  try {
+    final uri = Uri.parse(html.window.location.href);
+    final queryString = uri.query;
+    
+    // Check if URL is in SPA format (starts with / or //)
+    if (queryString.isNotEmpty && queryString.startsWith('/')) {
+      // Extract the response parameter
+      final responseParam = getResponseParamFromUrl();
+      
+      if (responseParam != null) {
+        // Determine base path (for GitHub Pages)
+        final pathname = html.window.location.pathname;
+        String basePath = '/';
+        if (pathname != null && pathname.isNotEmpty && pathname != '/') {
+          final segments = pathname.split('/').where((s) => s.isNotEmpty).toList();
+          if (segments.isNotEmpty) {
+            basePath = '/${segments.first}/';
+          }
+        }
+        
+        // Construct clean URL: /basePath/Response?response=...
+        final cleanPath = '${basePath}Response?response=${Uri.encodeComponent(responseParam)}';
+        
+        // Update URL without reloading page
+        html.window.history.replaceState(null, '', cleanPath);
+      }
+    }
+  } catch (e) {
+    // Silently handle errors
+  }
+}
+
 /// Get the response parameter from the current browser URL
 /// Returns null if not found or not on web
 /// Handles both direct query params and GitHub Pages SPA format (?//Response&response=...)

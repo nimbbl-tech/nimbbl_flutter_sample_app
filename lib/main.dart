@@ -10,7 +10,7 @@ import 'shared/widgets/responsive_layout.dart';
 import 'services/settings_service.dart';
 
 // Conditional import for web URL access
-import 'shared/utils/web_url_helper.dart' if (dart.library.html) 'shared/utils/web_url_helper_web.dart' show getResponseParamFromUrl;
+import 'shared/utils/web_url_helper.dart' if (dart.library.html) 'shared/utils/web_url_helper_web.dart' show getResponseParamFromUrl, cleanupResponseUrl;
 import 'shared/utils/web_navigation_helper.dart' show navigateToRoot;
 
 void main() async {
@@ -186,6 +186,11 @@ class _ResponsePageState extends State<_ResponsePage> {
               decodedResponse = parsedResponse;
               _isDecoding = false;
             });
+
+            // Clean up URL to show cleaner format (e.g., /Response?response=... instead of ?//Response&response=...)
+            if (kIsWeb) {
+              cleanupResponseUrl();
+            }
 
             // Auto-redirect after 5 seconds (matching React: setTimeout redirect)
             Future.delayed(const Duration(seconds: 5), () {
