@@ -4,11 +4,15 @@
 
 ## Overview
 
-This is a comprehensive Flutter sample application that demonstrates how to integrate the **Nimbbl Flutter WebView SDK** for payment processing. The app showcases:
+This is a comprehensive Flutter sample application that demonstrates how to integrate the **Nimbbl Flutter WebView SDK** for payment processing.
+
+**🎯 For Merchants:** The integration is actually very simple - just 3 steps! See the [Simple Integration](#-simple-merchant-integration-3-steps) section below.
+
+**📱 Full Demo App:** This sample app includes many demo features for testing and showcasing capabilities:
 
 - ✅ **Multi-Platform Support**: Android, iOS, and **Web** platforms
 - ✅ **Complete Payment Flow**: Order creation, checkout, and payment processing
-- ✅ **UI Customization**: Header customization, payment mode selection, checkout experience options
+- ✅ **UI Customization**: Header customization, payment mode selection, checkout experience options (for demo/testing)
 - ✅ **Responsive Design**: Optimized UI for both mobile and web platforms
 - ✅ **Real-World Examples**: Production-ready code patterns and best practices
 
@@ -98,9 +102,44 @@ Ready to explore? Let's get started! 🚀
 
 ## Usage
 
-### Basic Payment Flow
+### 🎯 Simple Merchant Integration (3 Steps)
 
-1. **Create Order**
+For merchants who just want to integrate payments, here's all you need:
+
+**1. Initialize SDK** (once in your app)
+```dart
+await NimbblCheckoutSDK.instance.initialize();
+```
+
+**2. Get Order Token** (from your backend - S2S order creation)
+```dart
+// Your backend creates order via Nimbbl API and returns orderToken
+String orderToken = await yourBackend.createOrder(...);
+```
+
+**3. Process Payment**
+```dart
+final result = await NimbblCheckoutSDK.instance.checkout(
+  CheckoutOptions(orderToken: orderToken)
+);
+
+if (result['status'] == 'success') {
+  // Payment successful!
+} else if (result['status'] == 'failed') {
+  // Payment failed
+}
+```
+
+**That's it!** See `lib/examples/simple_integration_example.dart` for complete minimal example.
+
+---
+
+### 📱 Full Sample App Features
+
+This sample app includes many demo features for testing. For production, you typically only need the 3 steps above.
+
+**Demo Features (for testing only):**
+1. **Create Order** - Client-side order creation (use S2S in production)
    - Enter amount and select currency
    - Configure payment options
    - Customize header and payment modes
@@ -110,6 +149,12 @@ Ready to explore? Let's get started! 🚀
    - Success: Redirects to success screen with transaction details
    - Failed: Shows error message
    - Cancelled: Returns to order screen
+
+**What Merchants Actually Need:**
+- SDK initialization
+- Order token from backend
+- Checkout call
+- Result handling
 
 ## Platform-Specific Notes
 
@@ -146,23 +191,30 @@ Ready to explore? Let's get started! 🚀
 
 ```
 lib/
+├── examples/
+│   └── simple_integration_example.dart  # ⭐ START HERE - Minimal integration example
 ├── core/
 │   ├── constants/        # App constants and configuration
 │   ├── services/         # Core services
 │   └── theme/            # App theme and styling
 ├── models/               # Data models
-├── screens/              # App screens
+├── screens/              # Full demo app screens
 │   ├── order_create_screen.dart      # Mobile order creation
 │   ├── web_order_create_screen.dart  # Web order creation
 │   └── order_success_screen.dart     # Payment success
 ├── services/             # Business logic services
-│   └── order_creation_service.dart   # Order creation API
+│   ├── payment_service.dart          # Payment processing wrapper
+│   └── order_creation_service.dart   # Order creation API (demo only - use S2S in production)
 ├── shared/
 │   ├── constants/        # Shared constants
 │   ├── utils/            # Utility functions
 │   └── widgets/          # Reusable widgets
-└── viewmodels/          # View models for state management
+└── viewmodels/          # View models for state management (demo app complexity)
 ```
+
+**For Merchant Integration:**
+- Focus on: `lib/examples/simple_integration_example.dart`
+- The rest is for demo/testing purposes
 
 ## Platform-Specific Setup
 

@@ -50,11 +50,11 @@ dependencies:
   
   # Nimbbl Flutter WebView SDK
   # Using published alpha version
-  nimbbl_mobile_kit_flutter_webview_sdk: ^1.1.1-alpha.3
+  nimbbl_mobile_kit_flutter_webview_sdk: ^1.1.1-alpha.4
   
   # Local SDK (commented out - using published version)
-  # nimbbl_mobile_kit_flutter_webview_sdk:
-  #   path: /Users/sandeepyadav/Documents/nimbbl_bitbucket_repos/nimbbl_mobile_kit_flutter_webview_sdk
+  #nimbbl_mobile_kit_flutter_webview_sdk:
+     #path: /Users/sandeepyadav/Documents/nimbbl_bitbucket_repos/nimbbl_mobile_kit_flutter_webview_sdk
   
   # Firebase dependencies (optional - can be disabled in AppConstants)
   firebase_crashlytics: ^5.0.4

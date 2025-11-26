@@ -9,7 +9,22 @@ import '../models/settings_data.dart';
 import '../shared/utils/validation_utils.dart';
 import 'order_creation_service.dart';
 
-/// Simplified Payment Service - Merchant-friendly integration
+/// Payment Service - Core integration logic
+/// 
+/// ⚠️ NOTE FOR MERCHANTS: This service wraps the SDK for the sample app.
+/// For your integration, you can use the SDK directly:
+/// 
+/// ```dart
+/// // Initialize once
+/// await NimbblCheckoutSDK.instance.initialize();
+/// 
+/// // Process payment
+/// final result = await NimbblCheckoutSDK.instance.checkout(
+///   CheckoutOptions(orderToken: orderToken)
+/// );
+/// ```
+/// 
+/// See lib/examples/simple_integration_example.dart for minimal integration example.
 class PaymentService {
   static final PaymentService _instance = PaymentService._internal();
   factory PaymentService() => _instance;

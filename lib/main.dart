@@ -47,6 +47,14 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       // Use onGenerateRoute to handle all routes, including /Response with query parameters
+      // 
+      // ⚠️ NOTE FOR MERCHANTS: The complex routing below is ONLY needed for web redirect mode
+      // in this sample app. For most merchant integrations:
+      // - Mobile: SDK handles navigation automatically
+      // - Web redirect: You can use simpler routing or let SDK handle it
+      // - Web popup: SDK handles callback automatically
+      // 
+      // This complex routing is for GitHub Pages SPA support and demo purposes.
       onGenerateRoute: (settings) {
         // Handle /Response route for redirect mode
         // Check both exact match and path starts with /Response (case-insensitive)
