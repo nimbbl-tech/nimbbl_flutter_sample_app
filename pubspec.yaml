@@ -50,7 +50,7 @@ dependencies:
   
   # Nimbbl Flutter WebView SDK
   # Using published alpha version
-  nimbbl_mobile_kit_flutter_webview_sdk: ^1.1.1-alpha.2
+  nimbbl_mobile_kit_flutter_webview_sdk: ^1.1.1-alpha.3
   
   # Local SDK (commented out - using published version)
   # nimbbl_mobile_kit_flutter_webview_sdk:

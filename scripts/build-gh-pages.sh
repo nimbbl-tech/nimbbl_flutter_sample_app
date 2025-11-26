@@ -13,6 +13,7 @@ set -e
 
 # Default base href (for project pages - update to match your repository name)
 BASE_HREF=${1:-/nimbbl_flutter_sample_app/}
+# WEB_RENDERER is deprecated in Flutter 3.32.5+ - kept for backward compatibility but not used
 WEB_RENDERER=${2:-canvaskit}
 SDK_VERSION=${3:-}
 
@@ -22,10 +23,10 @@ if [[ ! "$BASE_HREF" =~ ^/.*/$ ]]; then
   exit 1
 fi
 
-# Validate web renderer
+# Validate web renderer (deprecated but kept for backward compatibility)
+# Note: Flutter 3.32.5+ automatically selects the best renderer
 if [[ ! "$WEB_RENDERER" =~ ^(html|canvaskit|auto)$ ]]; then
-  echo "Error: Web renderer must be 'html', 'canvaskit', or 'auto'"
-  exit 1
+  echo "Warning: Web renderer parameter is deprecated in Flutter 3.32.5+. Flutter will auto-select the renderer."
 fi
 
 # Check if Flutter is installed
@@ -44,7 +45,7 @@ echo "=========================================="
 echo "Building Flutter web for GitHub Pages"
 echo "=========================================="
 echo "Base href: $BASE_HREF"
-echo "Web renderer: $WEB_RENDERER"
+echo "Note: Web renderer selection is automatic in Flutter 3.32.5+"
 echo ""
 
 # Prompt for SDK version if not provided
@@ -146,11 +147,9 @@ fi
 
 # Build Flutter web
 echo "Building Flutter web..."
-if [ "$WEB_RENDERER" = "auto" ]; then
-  flutter build web --release --base-href "$BASE_HREF"
-else
-  flutter build web --release --web-renderer "$WEB_RENDERER" --base-href "$BASE_HREF"
-fi
+# Note: --web-renderer flag is deprecated/removed in Flutter 3.32.5+
+# Flutter now automatically selects the best renderer
+flutter build web --release --base-href "$BASE_HREF"
 
 # Copy 404.html for SPA routing
 if [ -f web/404.html ]; then

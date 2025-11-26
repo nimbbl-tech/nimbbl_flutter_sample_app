@@ -27,7 +27,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.5'
+        flutter-version: '3.32.5'
         channel: 'stable'
     
     - name: Install dependencies
@@ -46,7 +46,7 @@ jobs:
     
     - name: Build web
       run: |
-        flutter build web --release --web-renderer canvaskit --base-href /nimbbl_flutter_sample_app/
+        flutter build web --release --base-href /nimbbl_flutter_sample_app/
     
     - name: Copy 404.html for SPA routing
       run: |
