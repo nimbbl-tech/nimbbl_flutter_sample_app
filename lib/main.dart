@@ -1,23 +1,19 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'core/services/firebase_service.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/order_success_screen.dart';
-import 'shared/widgets/responsive_layout.dart';
 import 'services/settings_service.dart';
-
-// Conditional import for web URL access
-import 'shared/utils/web_url_helper.dart' if (dart.library.html) 'shared/utils/web_url_helper_web.dart' show getResponseParamFromUrl, cleanupResponseUrl;
 import 'shared/utils/web_navigation_helper.dart' show navigateToRoot;
+import 'shared/utils/web_url_helper.dart' if (dart.library.html) 'shared/utils/web_url_helper_web.dart' show getResponseParamFromUrl, cleanupResponseUrl;
+import 'shared/widgets/responsive_layout.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase conditionally (disabled by default)
-  await FirebaseService.initialize();
 
   // Initialize services
   final settingsService = SettingsService();

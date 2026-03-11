@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -6,8 +7,8 @@ import 'package:intl/intl.dart';
 
 import '../core/constants/app_constants.dart';
 import '../models/payment_result_data.dart';
-import '../shared/widgets/responsive_layout.dart';
 import '../shared/utils/web_navigation_helper.dart';
+import '../shared/widgets/responsive_layout.dart';
 
 /// Order success screen for displaying payment results
 /// Matches the design from nimbbl_sonic_shop React project

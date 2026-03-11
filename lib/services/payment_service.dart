@@ -101,8 +101,7 @@ class PaymentService {
         paymentModeCode: paymentMode,
         bankCode: _getBankCode(orderData.subPaymentCustomisation),
         walletCode: _getWalletCode(orderData.subPaymentCustomisation),
-        paymentFlow: _getPaymentFlow(orderData.subPaymentCustomisation, paymentMode),
-        checkoutExperience: orderData.checkoutExperience, // Pass checkout experience
+        paymentFlow: _getPaymentFlow(orderData.subPaymentCustomisation, paymentMode),// Pass checkout experience
       );
 
       // Process payment using checkout method

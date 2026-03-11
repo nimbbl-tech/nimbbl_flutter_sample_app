@@ -5,15 +5,14 @@ import '../core/theme/app_theme.dart';
 import '../shared/constants/app_strings.dart';
 import '../shared/constants/order_create_data_values.dart';
 import '../shared/utils/navigation_utils.dart';
-import '../viewmodels/order_create_viewmodel.dart';
-
 import '../shared/widgets/currency_amount_input.dart';
 import '../shared/widgets/header_customisation_dropdown.dart';
+import '../shared/widgets/info_message.dart';
 import '../shared/widgets/payment_customisation_dropdown.dart';
 import '../shared/widgets/sub_payment_customisation_dropdown.dart';
 import '../shared/widgets/toggle_option.dart';
-import '../shared/widgets/info_message.dart';
 import '../shared/widgets/user_detail_field.dart';
+import '../viewmodels/order_create_viewmodel.dart';
 import 'order_success_screen.dart';
 import 'settings_screen.dart';
 

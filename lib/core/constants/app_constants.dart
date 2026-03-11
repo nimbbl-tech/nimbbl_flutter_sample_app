@@ -37,10 +37,6 @@ class AppConstants {
   static const String accessKeyKey = 'access_key';
   static const String accessSecretKey = 'access_secret';
   
-  // Firebase Configuration
-  static const bool enableFirebaseCrashlytics = false; // Set to true to enable Firebase Crashlytics
-  static const bool enableFirebaseAnalytics = false; // Set to true to enable Firebase Analytics
-  
   // External URLs - Matching React implementation
   static const String nimbblWebsiteUrl = 'https://nimbbl.biz/';
   static const String nimbblContactSalesUrl = 'https://nimbbl.biz/get-in-touch';

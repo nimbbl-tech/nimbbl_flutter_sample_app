@@ -184,8 +184,6 @@ This sample app includes many demo features for testing. For production, you typ
 - `dotted_border`: Dotted border styling
 - `google_fonts`: Font management
 
-### Optional Dependencies
-- `firebase_core`, `firebase_crashlytics`, `firebase_analytics`: Firebase integration (disabled by default)
 
 ## Project Structure
 

@@ -4,17 +4,6 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-// Conditionally apply Firebase plugins only if google-services.json exists
-// This allows the app to build without Firebase configuration
-// If you delete google-services.json, the Firebase plugins won't be applied
-def googleServicesFile = file('google-services.json')
-if (googleServicesFile.exists()) {
-    apply plugin: 'com.google.gms.google-services'
-    apply plugin: 'com.google.firebase.crashlytics'
-} else {
-    println('google-services.json not found. Firebase plugins will not be applied.')
-    println('App will build and run without Firebase services.')
-}
 
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
@@ -54,7 +43,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "tech.nimbbl.nimbbl_flutter_sample_app"
-        minSdk 23
+        minSdkVersion flutter.minSdkVersion
         targetSdk 36
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.

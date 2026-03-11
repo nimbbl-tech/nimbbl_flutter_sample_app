@@ -45,13 +45,6 @@ app.*.map.json
 /android/app/release
 /pubspec.lock
 /ios/Podfile.lock
-/lib/firebase_options.dart
-/firebase.json
-/ios/Runner/GoogleService-Info.plist
-/android/app/google-services.json
-
-# Firebase config backup folder (contains sensitive credentials)
-/firebase_config_backup/
 
 # Build artifacts
 /android/app/build/
@@ -65,11 +58,5 @@ app.*.map.json
 /releases/*.apk
 /releases/*.aab
 
-# IDE files
-*.iml
-.idea/
 .vscode/
-
-# OS files
-.DS_Store
 Thumbs.db
