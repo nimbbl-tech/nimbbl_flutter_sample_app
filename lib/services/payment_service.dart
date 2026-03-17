@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_sdk.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/types.dart';
 
@@ -44,9 +45,11 @@ class PaymentService {
     _initializeSDKInstance();
 
     try {
-      // Build configuration with API base URL if provided
+      // Build configuration with API base URL based on settings
       final apiBaseUrl = settingsData != null ? _getApiBaseUrl(settingsData) : null;
-      final config = SDKConfig(apiBaseUrl: apiBaseUrl);
+      final config = SDKConfig(
+        apiBaseUrl: apiBaseUrl,
+      );
       
       // Actually initialize the SDK
       await _nimbblSDK.initialize(config);
@@ -58,13 +61,13 @@ class PaymentService {
     }
   }
 
-  /// Get API base URL based on environment - Matching Android app approach
+  /// Get API base URL based on environment (resolved like Android resolveShopBaseUrl for SDK env URL)
   String _getApiBaseUrl(SettingsData? settingsData) {
     if (settingsData == null) return ApiConstants.defaultEnvironment;
-    
-    // Use the single baseUrl field like Android app
-    return settingsData.baseUrl;
+    return OrderCreationService.resolveShopBaseUrl(settingsData.baseUrl);
   }
+
+  // Samunnaya endpoint and checkoutHost are now derived inside the Flutter Webview SDK (web implementation)
 
   /// Process payment - Simplified merchant integration
   Future<Map<String, dynamic>> processPayment(
@@ -72,6 +75,9 @@ class PaymentService {
     SettingsData settingsData,
   ) async {
     try {
+      if (kDebugMode) {
+        print('SAN-->$settingsData');
+      }
       // Get the current baseUrl from settings
       final currentBaseUrl = _getApiBaseUrl(settingsData);
       
@@ -101,7 +107,8 @@ class PaymentService {
         paymentModeCode: paymentMode,
         bankCode: _getBankCode(orderData.subPaymentCustomisation),
         walletCode: _getWalletCode(orderData.subPaymentCustomisation),
-        paymentFlow: _getPaymentFlow(orderData.subPaymentCustomisation, paymentMode),// Pass checkout experience
+        paymentFlow: _getPaymentFlow(orderData.subPaymentCustomisation, paymentMode),
+        checkoutExperience: orderData.checkoutExperience ?? 'redirect',
       );
 
       // Process payment using checkout method

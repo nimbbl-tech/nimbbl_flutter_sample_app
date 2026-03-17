@@ -31,9 +31,9 @@ class OrderCreationService {
   factory OrderCreationService() => _instance;
   OrderCreationService._internal();
 
-  /// Create order via Nimbbl API
+  /// Create order via Nimbbl create-shop API (matching Android OrderCreateActivity).
   /// 
-  /// This method makes a direct HTTP call to Nimbbl API to create an order.
+  /// This method makes a direct HTTP call to Nimbbl create-shop API.
   /// In production, this should be done by your backend (S2S).
   /// 
   /// Returns order token on success, throws exception on failure.
@@ -41,32 +41,40 @@ class OrderCreationService {
     OrderData orderData,
     SettingsData settingsData,
   ) async {
-    // Get shop order creation URL (matching Android Core API SDK)
-    final createOrderUrl = _getShopOrderUrl(settingsData);
+    // Resolve shop base URL then shop order URL (matching Android resolveShopBaseUrl + resolveShopOrderUrl)
+    final shopBaseUrl = resolveShopBaseUrl(settingsData.baseUrl);
+    final createOrderUrl = _resolveShopOrderUrl(shopBaseUrl);
 
-    // Build request body
-    // Note: product_id is determined based on headerCustomisation, orderLineItems, and render_desktop_ui
-    // Matching React implementation from nimbbl_sonic_shop
+    // Build request body matching Android createShopOrderRequest (OrderCreateActivity.kt)
+    final productId = _getProductIdForHeader(
+      orderData.headerCustomisation,
+      orderData.orderLineItems,
+      orderData.renderDesktopUi ?? false,
+      orderData.addressCodEnabled ?? false,
+    );
+    final amountInt = int.tryParse(orderData.amount) ?? 0;
     final bodyData = <String, dynamic>{
       'currency': orderData.currency,
-      'amount': orderData.amount.toString(),
-      'product_id': _getProductIdForHeader(
-        orderData.headerCustomisation,
-        orderData.orderLineItems,
-        orderData.renderDesktopUi ?? false,
-        orderData.addressCodEnabled ?? false,
-      ),
-      'orderLineItems': orderData.orderLineItems,
+      'amount': orderData.amount,
+      'product_id': productId,
+      'total_amount': amountInt,
+      'amount_before_tax': amountInt,
+      'tax': 0,
+      'additional_charges': 0,
+      'grand_total_amount': amountInt,
+      'order_line_items': true,
       'checkout_experience': orderData.checkoutExperience ?? 'redirect',
+      'payment_mode': _getPaymentModeCode(orderData.paymentCustomisation).isNotEmpty
+          ? _getPaymentModeCode(orderData.paymentCustomisation)
+          : 'All',
     };
     
-    // Add access credentials if provided (matching React: if showAccessCredentials && accessKey && accessSecret)
+    // Add access credentials if provided
     if (settingsData.useAccessCredentials &&
         settingsData.accessKey != null &&
         settingsData.accessKey!.trim().isNotEmpty &&
         settingsData.accessSecret != null &&
         settingsData.accessSecret!.trim().isNotEmpty) {
-      // When using access credentials, set product_id to 0 and add merchant object
       bodyData['product_id'] = 0;
       bodyData['merchant'] = {
         'access_key': settingsData.accessKey!.trim(),
@@ -74,17 +82,12 @@ class OrderCreationService {
       };
     }
 
-    // Add payment mode (default to "All" if empty, matching Android Core API SDK)
-    final paymentMode = _getPaymentModeCode(orderData.paymentCustomisation);
-    bodyData['payment_mode'] = paymentMode.isNotEmpty ? paymentMode : 'All';
-
-    // Add sub payment mode if provided
     final subPaymentMode = _getSubPaymentModeCode(orderData.subPaymentCustomisation);
     if (subPaymentMode.isNotEmpty) {
-      bodyData['subPaymentMode'] = subPaymentMode;
+      bodyData['sub_payment_mode'] = subPaymentMode;
     }
 
-    // Add user details if provided
+    // User details (Android: user { email, name, mobile_number })
     if (orderData.userDetails) {
       final trimmedName = orderData.firstName.trim();
       final trimmedNumber = orderData.mobileNumber.trim();
@@ -98,6 +101,22 @@ class OrderCreationService {
         };
       }
     }
+
+    // Order line item array (Android: order_line_item)
+    bodyData['order_line_item'] = [
+      {
+        'title': 'Product',
+        'description': 'Product description',
+        'quantity': 1.toDouble(),
+        'rate': amountInt.toDouble(),
+        'total_amount': amountInt.toDouble(),
+        'amount_before_tax': amountInt.toDouble(),
+        'tax': 0,
+        'image_url': '',
+        'sku_id': productId,
+        'uom': 'unit',
+      },
+    ];
 
     try {
       // Create Dio instance
@@ -170,32 +189,59 @@ class OrderCreationService {
     }
   }
 
-  /// Get shop order creation URL based on environment
-  /// Matches Android Core API SDK implementation exactly
-  String _getShopOrderUrl(SettingsData? settingsData) {
-    final baseUrl = settingsData?.baseUrl ?? ApiConstants.defaultEnvironment;
-    
-    // Match Android Core API SDK logic exactly
-    if (baseUrl.contains('qa')) {
-      // For QA environments, replace 'api' with 'sonicshopapi'
-      final shopHost = baseUrl.replaceAll('api', 'sonicshopapi');
-      // Ensure proper URL construction without double slashes
-      if (shopHost.endsWith('/')) {
-        return '${shopHost}create-shop';
-      } else {
-        return '$shopHost/create-shop';
-      }
-    } else if (baseUrl.contains('pp')) {
-      // For pre-production
-      return 'https://sonicshopapipp.nimbbl.tech/create-shop';
-    } else if (baseUrl.contains('api.nimbbl.tech') && 
-               !baseUrl.contains('qa') && 
-               !baseUrl.contains('pp')) {
-      // For production
-      return 'https://sonicshopapi.nimbbl.tech/create-shop';
-    } else {
-      // Fallback to production
-      return 'https://sonicshopapi.nimbbl.tech/create-shop';
+  /// Format URL (matching Android AppUtilExtensions.formatUrl)
+  static String _formatUrl(String url) {
+    String formatted = url.trim();
+    formatted = formatted.replaceAll('//', '/');
+    formatted = formatted.replaceAll('https:/', 'https://');
+    formatted = formatted.replaceAll('http:/', 'http://');
+    if (!formatted.endsWith('/')) formatted += '/';
+    return formatted;
+  }
+
+  /// Check if URL is IP-based (matching Android OrderCreateActivity.isIpBasedUrl)
+  static bool _isIpBasedUrl(String value) {
+    try {
+      final normalized = value.startsWith('http://') || value.startsWith('https://')
+          ? value
+          : 'https://$value';
+      final uri = Uri.parse(normalized);
+      final host = uri.host;
+      final ipV4 = RegExp(r'^(\d{1,3}\.){3}\d{1,3}$');
+      return ipV4.hasMatch(host);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Resolve shop base URL (matching Android resolveShopBaseUrl). Exposed for SDK env URL.
+  static String resolveShopBaseUrl(String? configuredBaseUrl) {
+    final trimmed = (configuredBaseUrl ?? '').trim();
+    final baseUrl = trimmed.isEmpty
+        ? ApiConstants.nimbblTechUrl
+        : _isIpBasedUrl(trimmed)
+            ? ApiConstants.baseUrlQA1
+            : trimmed;
+    final formatted = _formatUrl(baseUrl);
+    return formatted.isEmpty ? ApiConstants.nimbblTechUrl : formatted;
+  }
+
+  /// Resolve shop order URL from API base URL (matching Android resolveShopOrderUrl)
+  String _resolveShopOrderUrl(String apiBaseUrl) {
+    try {
+      final normalized = _formatUrl(apiBaseUrl);
+      final withoutTrailingSlash = normalized.endsWith('/')
+          ? normalized.substring(0, normalized.length - 1)
+          : normalized;
+      if (withoutTrailingSlash.isEmpty) return ApiConstants.shopOrderUrlQA1;
+      final uri = Uri.parse(withoutTrailingSlash);
+      final host = uri.host;
+      if (host.isEmpty) return ApiConstants.shopOrderUrlQA1;
+      final shopHost = host.replaceFirst(RegExp('api'), 'sonicshopapi');
+      final scheme = uri.scheme;
+      return '$scheme://$shopHost/create-shop';
+    } catch (_) {
+      return ApiConstants.shopOrderUrlQA1;
     }
   }
 
@@ -287,13 +333,13 @@ class OrderCreationService {
       // Mobile product IDs: 11, 12, 13 for standard headers
       switch (headerCustomisation) {
         case AppStrings.brandNameAndLogo:
-          return '11';
+          return '1';
         case AppStrings.brandLogo:
-          return '12';
+          return '2';
         case AppStrings.brandName:
-          return '13';
+          return '3';
         default:
-          return '11'; // Default to 'your brand name and brand logo'
+          return '1'; // Default to 'your brand name and brand logo'
       }
     }
   }
