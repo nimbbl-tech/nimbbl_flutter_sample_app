@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--
+      App theme used by non-Flutter activities (e.g. Nimbbl WebView SDK screens).
+      The SDK activity extends AppCompatActivity and requires an AppCompat theme.
+    -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar" />
+
     <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <!-- Show a splash screen on the activity. Automatically removed when

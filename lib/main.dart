@@ -52,9 +52,8 @@ class MyApp extends StatelessWidget {
       // 
       // This complex routing is for GitHub Pages SPA support and demo purposes.
       onGenerateRoute: (settings) {
-        // Handle /Response route for redirect mode
-        // Check both exact match and path starts with /Response (case-insensitive)
-        final routeName = (settings.name ?? '').toLowerCase();
+        // Handle /Response route for redirect mode (accept /Response and //Response for IP/localhost callback)
+        final routeName = (settings.name ?? '').toLowerCase().replaceFirst(RegExp(r'^/+'), '/');
         if (routeName == '/response' || routeName.startsWith('/response')) {
           return MaterialPageRoute(
             builder: (context) => _ResponsePage(),
@@ -62,14 +61,14 @@ class MyApp extends StatelessWidget {
           );
         }
         
-        // Also check if we're on web and the actual URL path is /Response
+        // Also check if we're on web and the actual URL path is /Response or //Response (e.g. IP/localhost callback)
         if (kIsWeb) {
           try {
             final uri = Uri.base;
             final path = uri.path.toLowerCase();
-            
-            // Check if path is /Response
-            if (path == '/response' || path.startsWith('/response')) {
+            // Normalize multiple leading slashes so //Response and /Response both match
+            final pathNormalized = path.replaceFirst(RegExp(r'^/+'), '/');
+            if (pathNormalized == '/response' || pathNormalized.startsWith('/response')) {
               return MaterialPageRoute(
                 builder: (context) => _ResponsePage(),
                 settings: settings,

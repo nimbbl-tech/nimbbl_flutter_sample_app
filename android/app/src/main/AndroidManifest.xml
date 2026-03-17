@@ -5,6 +5,7 @@
         android:label="nimbbl_flutter_sample_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="UnusedAttribute">
         <activity
@@ -28,11 +29,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Nimbbl Android WebView SDK Activity -->
-        <activity
-            android:name="tech.nimbbl.webviewsdk.ui.activity.NimbblCheckoutMainActivity"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
         
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
