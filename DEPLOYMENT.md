@@ -140,7 +140,7 @@ chmod +x scripts/build-gh-pages.sh
 ./scripts/build-gh-pages.sh [base-href] [web-renderer] [sdk-version]
 
 # Example for project pages:
-./scripts/build-gh-pages.sh /nimbbl_flutter_sample_app/ canvaskit 1.1.1-alpha.2
+./scripts/build-gh-pages.sh /nimbbl_flutter_sample_app/ canvaskit 1.1.2
 ```
 
 The script will:

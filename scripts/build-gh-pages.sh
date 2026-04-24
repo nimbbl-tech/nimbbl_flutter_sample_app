@@ -2,7 +2,7 @@
 
 # Build script for GitHub Pages deployment
 # Usage: ./scripts/build-gh-pages.sh [base-href] [web-renderer] [sdk-version]
-# Example: ./scripts/build-gh-pages.sh /nimbbl_flutter_sample_app/ html 1.1.0
+# Example: ./scripts/build-gh-pages.sh /nimbbl_flutter_sample_app/ canvaskit 1.1.2
 # 
 # Arguments:
 #   base-href: Base href for the app (default: /nimbbl_flutter_sample_app/)

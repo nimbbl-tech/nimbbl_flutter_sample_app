@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_sdk.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/types.dart';
+import 'dart:convert';
 
 import '../core/constants/api_constants.dart';
 // SDKConfig is in types.dart, imported above
@@ -40,6 +41,15 @@ class PaymentService {
     _nimbblSDK = NimbblCheckoutSDK.instance;
   }
 
+  void _logLongDebug(String message) {
+    const chunkSize = 800;
+    if (!kDebugMode) return;
+    for (var i = 0; i < message.length; i += chunkSize) {
+      final end = (i + chunkSize < message.length) ? i + chunkSize : message.length;
+      debugPrint(message.substring(i, end));
+    }
+  }
+
   /// Initialize SDK with configuration
   Future<void> initialize([SettingsData? settingsData]) async {
     _initializeSDKInstance();
@@ -49,6 +59,7 @@ class PaymentService {
       final apiBaseUrl = settingsData != null ? _getApiBaseUrl(settingsData) : null;
       final config = SDKConfig(
         apiBaseUrl: apiBaseUrl,
+        enableDebugLogs: kDebugMode,
       );
       
       // Actually initialize the SDK
@@ -113,6 +124,11 @@ class PaymentService {
 
       // Process payment using checkout method
       final checkoutResult = await _nimbblSDK.checkout(checkoutOptions);
+
+      if (kDebugMode) {
+        final pretty = const JsonEncoder.withIndent('  ').convert(checkoutResult);
+        _logLongDebug('NIMBBL_CHECKOUT_RESULT (processPayment): $pretty');
+      }
 
       // Return the checkout result directly
       return checkoutResult;

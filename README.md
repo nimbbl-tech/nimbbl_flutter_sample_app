@@ -174,7 +174,7 @@ This sample app includes many demo features for testing. For production, you typ
 ## Dependencies
 
 ### Core Dependencies
-- `nimbbl_mobile_kit_flutter_webview_sdk`: Nimbbl Flutter WebView SDK (v1.1.1-alpha.2)
+- `nimbbl_mobile_kit_flutter_webview_sdk`: Nimbbl Flutter WebView SDK (v1.1.2)
 - `dio`: HTTP client for API calls
 - `url_launcher`: External URL handling
 
@@ -218,8 +218,8 @@ lib/
 
 ### Android
 - Minimum SDK: 21
-- Target SDK: 34
-- Compile SDK: 34
+- Target SDK: 36
+- Compile SDK: 36
 
 ### iOS
 - Minimum iOS: 13.0

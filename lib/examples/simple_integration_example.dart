@@ -3,15 +3,21 @@
 /// A minimal standalone Flutter app for testing Nimbbl payment integration.
 /// Enter your order token and tap "Pay Now" to initiate a payment.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/nimbbl_checkout_sdk.dart';
 import 'package:nimbbl_mobile_kit_flutter_webview_sdk/types.dart';
+import 'dart:convert';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Nimbbl SDK once at startup
-  await NimbblCheckoutSDK.instance.initialize();
+  await NimbblCheckoutSDK.instance.initialize(
+    SDKConfig(
+      enableDebugLogs: kDebugMode,
+    ),
+  );
 
   runApp(const NimbblStandaloneApp());
 }
@@ -47,6 +53,15 @@ class _OrderTokenScreenState extends State<OrderTokenScreen> {
   );
   bool _isLoading = false;
 
+  void _logLongDebug(String message) {
+    const chunkSize = 800;
+    if (!kDebugMode) return;
+    for (var i = 0; i < message.length; i += chunkSize) {
+      final end = (i + chunkSize < message.length) ? i + chunkSize : message.length;
+      debugPrint(message.substring(i, end));
+    }
+  }
+
   @override
   void dispose() {
     _tokenController.dispose();
@@ -66,6 +81,11 @@ class _OrderTokenScreenState extends State<OrderTokenScreen> {
       );
 
       final result = await NimbblCheckoutSDK.instance.checkout(checkoutOptions);
+
+      if (mounted && kDebugMode) {
+        final pretty = const JsonEncoder.withIndent('  ').convert(result);
+        _logLongDebug('NIMBBL_CHECKOUT_RESULT (simple_example): $pretty');
+      }
 
       if (mounted) {
         final status = result['status'] ?? 'unknown';
